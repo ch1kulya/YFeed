@@ -17,9 +17,6 @@ CONFIG_FILE = "data/settings.json"
 CHANNELS_FILE = "data/channels.yfe"
 WATCHED_FILE = "data/watched.yfe"
 
-MIN_TERMINAL_WIDTH = 100
-MIN_TERMINAL_HEIGHT = 50
-
 class YouTubeChannelExtractor:
     def __init__(self, api_key: str):
         """Initialize YouTube API client"""
