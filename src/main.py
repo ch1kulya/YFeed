@@ -501,7 +501,17 @@ def main():
         elif choice == "3":
             interface.settings_menu()
         elif choice == "4":
-            print(Fore.YELLOW + Style.BRIGHT + "Goodbye!")
+            os.system("cls" if os.name == "nt" else "clear")
+            logo = pyfiglet.figlet_format("Goodbye!", font='slant', width=interface.terminal_width)
+            gradient_logo = interface.gradient_color(
+                logo,
+                (255, 255, 255),
+                (255, 69, 255)
+            )
+            print("\n")
+            for line in gradient_logo.split('\n'):
+                print(" " * 3 + line)
+            print("\n")
             break
         else:
             interface.show_message("Invalid choice!", Fore.RED)
