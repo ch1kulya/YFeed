@@ -1,15 +1,12 @@
 import os
-import platform
 import json
 import feedparser
 import webbrowser
 import pyfiglet
-import isodate
 import re
 from colorama import Fore, Style, init
 from datetime import datetime, timedelta
-import requests
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
@@ -167,53 +164,62 @@ class YouTubeFeedManager:
         )
         normal_text = emoji_pattern.sub(r'', text).lower().capitalize()
         return normal_text
+    
+    @staticmethod
+    def iso_duration_to_seconds(duration: str) -> int:
+        """Convert ISO 8601 duration format to total seconds"""
+        match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
+        hours = int(match.group(1)) if match.group(1) else 0
+        minutes = int(match.group(2)) if match.group(2) else 0
+        seconds = int(match.group(3)) if match.group(3) else 0
+        return hours * 3600 + minutes * 60 + seconds
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
         """Fetch videos for a channel, filter by length, and remove emojis"""
         try:
+            # Fetch the feed data from the channel
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
             feed = feedparser.parse(url)
-            videos = []
-            for entry in feed.entries:
-                video_id = entry.id.split(":")[-1]
+
+            # Collect all video IDs in the current feed
+            video_ids = [entry.id.split(":")[-1] for entry in feed.entries]
+
+            # Fetch details for all videos in a single request
+            try:
+                video_response = self.channel_extractor.youtube.videos().list(
+                    part="contentDetails",
+                    id=','.join(video_ids)
+                ).execute()
+
+                # Extract the duration from the response and filter videos
+                min_seconds = self.config.get("min_video_length", 2) * 60
+                videos = []
                 
-                # Get video details from API
-                try:
-                    video_response = self.channel_extractor.youtube.videos().list(
-                        part="contentDetails",
-                        id=video_id
-                    ).execute()
-                    items = video_response.get("items", [])
+                for entry in feed.entries:
+                    video_id = entry.id.split(":")[-1]
+                    items = [item for item in video_response.get("items", []) if item["id"] == video_id]
+
                     if not items:
                         continue
-                    
+
                     duration = items[0]["contentDetails"]["duration"]
-                    
-                    # Convert ISO 8601 duration to seconds
-                    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
-                    hours = int(match.group(1)) if match.group(1) else 0
-                    minutes = int(match.group(2)) if match.group(2) else 0
-                    seconds = int(match.group(3)) if match.group(3) else 0
-                    total_seconds = hours * 3600 + minutes * 60 + seconds
-                    
-                    # Skip if video is shorter than the minimum length
-                    min_seconds = self.config.get("min_video_length", 2) * 60
+                    total_seconds = self.iso_duration_to_seconds(duration)
+
                     if total_seconds < min_seconds:
                         continue
-                    
-                except HttpError as e:
-                    print(Fore.RED + f"Error fetching video details: {e}")
-                    continue
 
-                videos.append({
-                    "title": self.remove_emojis(entry.title),
-                    "link": entry.link,
-                    "published": datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z"),
-                    "id": entry.id,
-                    "author": entry.author if 'author' in entry else "Unknown",
-                })
-            
-            return videos
+                    videos.append({
+                        "title": self.remove_emojis(entry.title),
+                        "link": entry.link,
+                        "published": datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z"),
+                        "id": entry.id,
+                        "author": entry.author if 'author' in entry else "Unknown",
+                    })
+
+                return videos
+            except HttpError as e:
+                print(Fore.RED + f"Error fetching video details: {e}")
+                return []
         except Exception as e:
             print(Fore.RED + f"Error fetching videos for channel {channel_id}: {str(e)}")
             return []
