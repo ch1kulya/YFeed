@@ -4,7 +4,7 @@ import feedparser
 import webbrowser
 import pyfiglet
 import re
-from colorama import Fore, Style, init, Back
+from colorama import Fore, Style, init
 from datetime import datetime, timedelta
 from typing import Dict, List, Set
 from googleapiclient.discovery import build
@@ -18,11 +18,11 @@ WATCHED_FILE = "data/watched.yfe"
 
 class YouTubeChannelExtractor:
     def __init__(self, api_key: str):
-        """Initialize YouTube API client"""
+        # Initialize YouTube API client
         self.youtube = build('youtube', 'v3', developerKey=api_key)
     
     def get_channel_id(self, link: str) -> str:
-        """Get channel ID from various YouTube URL formats"""
+        # Get channel ID from YouTube URL
         if not link:
             raise ValueError("Link cannot be empty")
             
@@ -47,7 +47,7 @@ class YouTubeChannelExtractor:
         raise ValueError("Invalid channel link format")
 
     def _get_channel_id_from_username(self, username: str) -> str:
-        """Get channel ID using YouTube Data API"""
+        # Get channel ID using YouTube Data API
         try:
             request = self.youtube.search().list(
                 part="id",
@@ -77,7 +77,7 @@ class YouTubeChannelExtractor:
             raise ValueError(f"YouTube API error: {str(e)}")
 
     def _validate_channel_id(self, channel_id: str) -> bool:
-        """Validate if channel ID exists"""
+        # Validate if channel ID exists
         try:
             response = self.youtube.channels().list(
                 part="id",
@@ -89,7 +89,7 @@ class YouTubeChannelExtractor:
 
 class YouTubeFeedManager:
     def __init__(self):
-        """Initialize the feed manager"""
+        # Initialize the feed manager
         self.config = self.load_config()
         self.channels = self.load_channels()
         self.watched = self.load_watched()
@@ -101,7 +101,7 @@ class YouTubeFeedManager:
 
     @staticmethod
     def load_config() -> Dict:
-        """Load configuration from file"""
+        # Load configuration from file
         default_config = {"days_filter": 7, "api_key": "", "min_video_length": 2}
         if not os.path.exists(CONFIG_FILE):
             return default_config
@@ -110,42 +110,42 @@ class YouTubeFeedManager:
         return {**default_config, **config}
 
     def save_config(self) -> None:
-        """Save configuration to file"""
+        # Save configuration to file
         os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
         with open(CONFIG_FILE, "w") as f:
             json.dump(self.config, f)
 
     @staticmethod
     def load_channels() -> List[str]:
-        """Load channel list from file"""
+        # Load channel list from file
         if not os.path.exists(CHANNELS_FILE):
             return []
         with open(CHANNELS_FILE, "r") as f:
             return [line.strip() for line in f]
 
     def save_channels(self) -> None:
-        """Save channel list to file"""
+        # Save channel list to file
         os.makedirs(os.path.dirname(CHANNELS_FILE), exist_ok=True)
         with open(CHANNELS_FILE, "w") as f:
             f.write("\n".join(self.channels))
 
     @staticmethod
     def load_watched() -> Set[str]:
-        """Load watched videos from file"""
+        # Load history from file
         if not os.path.exists(WATCHED_FILE):
             return set()
         with open(WATCHED_FILE, "r") as f:
             return set(line.strip() for line in f)
 
     def save_watched(self) -> None:
-        """Save watched videos to file"""
+        # Save history to file
         os.makedirs(os.path.dirname(WATCHED_FILE), exist_ok=True)
         with open(WATCHED_FILE, "w") as f:
             f.write("\n".join(self.watched))
             
     @staticmethod
     def remove_emojis(text: str) -> str:
-        """Remove emojis from text"""
+        # Remove emojis from text
         emoji_pattern = re.compile(
             "["
             "\U0001F600-\U0001F64F"  # emoticons
@@ -167,7 +167,7 @@ class YouTubeFeedManager:
     
     @staticmethod
     def iso_duration_to_seconds(duration: str) -> int:
-        """Convert ISO 8601 duration format to total seconds"""
+        # Convert ISO 8601 duration format to total seconds
         match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
         hours = int(match.group(1)) if match.group(1) else 0
         minutes = int(match.group(2)) if match.group(2) else 0
@@ -175,7 +175,7 @@ class YouTubeFeedManager:
         return hours * 3600 + minutes * 60 + seconds
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
-        """Fetch videos for a channel, filter by length, and remove emojis"""
+        # Fetch videos for a channel
         try:
             # Fetch the feed data from the channel
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
@@ -231,7 +231,7 @@ class Interface:
         self.padding = 2
 
     def gradient_color(self, text: str, start_color: tuple, end_color: tuple) -> str:
-        """Create a gradient effect for text"""
+        # Create a gradient effect for text
         result = ""
         for i, char in enumerate(text):
             if char == '\n':
@@ -244,7 +244,7 @@ class Interface:
         return result + Style.RESET_ALL
 
     def format_time_ago(self, delta: timedelta) -> str:
-        """Format timedelta into human readable string"""
+        # Format timedelta into human readable string"
         minutes = delta.total_seconds() / 60
         if minutes < 60:
             return f"{int(minutes)}m ago"
@@ -254,7 +254,7 @@ class Interface:
         return f"{int(hours / 24)}d ago"
 
     def draw_logo(self) -> None:
-        """Draw application logo with gradient effect"""
+        # Draw application logo
         os.system("cls" if os.name == "nt" else "clear")
         logo = pyfiglet.figlet_format("YFeed", font='slant', width=self.terminal_width)
         gradient_logo = self.gradient_color(
@@ -268,16 +268,16 @@ class Interface:
         print("\n")
 
     def input_prompt(self, prompt: str) -> str:
-        """Styled input prompt"""
+        # Input prompt
         return input(f"{Fore.CYAN}{prompt}: {Style.RESET_ALL}")
 
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
-        """Display message without excessive spacing"""
+        # Display message
         print(f"{color}{message}{Style.RESET_ALL}")
         input(Fore.WHITE + f"Press {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
 
     def main_menu(self) -> str:
-        """Display main menu"""
+        # Display main menu
         self.draw_logo()
         options = [
             ("1", "Videos", "- Browse latest videos from your subscriptions"),
@@ -292,7 +292,7 @@ class Interface:
         return self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
 
     def videos_menu(self) -> None:
-        """Display videos menu"""
+        # Display videos list
         self.draw_logo()
         videos = []
         
@@ -362,7 +362,7 @@ class Interface:
             webbrowser.open(video["link"])
 
     def channels_menu(self) -> None:
-        """Display channels menu"""
+        # Display channels menu
         while True:
             self.draw_logo()
             
@@ -434,7 +434,7 @@ class Interface:
                 self.show_message("Invalid choice!", Fore.RED)
 
     def settings_menu(self) -> None:
-        """Display settings menu"""
+        # Display settings menu
         while True:
             self.draw_logo()
             options = [
@@ -485,7 +485,7 @@ class Interface:
                 self.show_message("Invalid choice!", Fore.RED)
 
 def main():
-    """Main application entry point"""
+    # Main application entry point
     manager = YouTubeFeedManager()
     interface = Interface(manager)
 
