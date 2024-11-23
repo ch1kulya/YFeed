@@ -208,6 +208,8 @@ class YouTubeFeedManager:
                     if total_seconds < min_seconds:
                         continue
 
+                    print(Fore.GREEN + "Video fetched!")
+
                     videos.append({
                         "title": self.remove_emojis(entry.title),
                         "link": entry.link,
@@ -298,7 +300,6 @@ class Interface:
         
         for channel_id in self.manager.channels:
             videos.extend(self.manager.fetch_videos(channel_id))
-            print(Fore.GREEN + "Video fetched!")
         
         if not videos:
             self.show_message("No videos found!", Fore.RED)
@@ -453,20 +454,18 @@ class Interface:
                 if days.isdigit() and int(days) > 0:
                     self.manager.config["days_filter"] = int(days)
                     self.manager.save_config()
-                    print(Fore.GREEN + "Settings updated!")
+                    self.show_message("Settings updated!", Fore.GREEN)
                 else:
-                    print(Fore.RED + "Invalid input.")
-                input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
+                    self.show_message("Invalid input.", Fore.RED)
                 
             elif choice == "2":
                 new_length = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of minutes")
                 if new_length.isdigit() and int(new_length) > 0:
                     self.manager.config["min_video_length"] = int(new_length)
                     self.manager.save_config()
-                    print(Fore.GREEN + "Settings updated!")
+                    self.show_message("Settings updated!", Fore.GREEN)
                 else:
-                    print(Fore.RED + "Invalid input.")
-                input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
+                    self.show_message("Invalid input.", Fore.RED)
 
             elif choice == "3":
                 api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}")
@@ -474,10 +473,9 @@ class Interface:
                     self.manager.config["api_key"] = api_key.strip()
                     self.manager.save_config()
                     self.manager.channel_extractor = YouTubeChannelExtractor(api_key.strip())
-                    print(Fore.GREEN + "API Key updated!")
+                    self.show_message("API Key updated!", Fore.GREEN)
                 else:
-                    print(Fore.RED + "Invalid API Key.")
-                input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
+                    self.show_message("Invalid API Key.", Fore.RED)
 
             elif choice == "4":
                 break
