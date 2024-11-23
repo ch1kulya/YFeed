@@ -269,12 +269,12 @@ class Interface:
 
     def input_prompt(self, prompt: str) -> str:
         """Styled input prompt"""
-        return input(f"{Fore.GREEN}{prompt}: {Style.RESET_ALL}")
+        return input(f"{Fore.CYAN}{prompt}: {Style.RESET_ALL}")
 
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
         """Display message without excessive spacing"""
         print(f"{color}{message}{Style.RESET_ALL}")
-        input(f"{Fore.YELLOW}Press Enter to continue...{Style.RESET_ALL}")
+        input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
 
     def main_menu(self) -> str:
         """Display main menu"""
@@ -289,7 +289,7 @@ class Interface:
         for num, title, desc in options:
             print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
 
-        return self.input_prompt("\nChoose an option")
+        return self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
 
     def videos_menu(self) -> None:
         """Display videos menu"""
@@ -354,7 +354,7 @@ class Interface:
                 f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
             )
 
-        choice = self.input_prompt("\nSelect video number or press Enter to return")
+        choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
         if choice.isdigit() and 1 <= int(choice) <= len(videos):
             video = videos[int(choice) - 1]
             self.manager.watched.add(video["id"])
@@ -376,14 +376,14 @@ class Interface:
             for num, title, desc in options:
                 print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
 
-            choice = self.input_prompt("\nChoose an option")
+            choice = self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
 
             if choice == "1":
                 if not self.manager.config.get('api_key'):
                     self.show_message("Please set YouTube API key in settings first!", Fore.RED)
                     continue
                     
-                link = self.input_prompt("\nEnter YouTube channel link")
+                link = self.input_prompt(f"{Fore.WHITE}\nEnter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
                 try:
                     channel_id = self.manager.channel_extractor.get_channel_id(link)
                     if channel_id not in self.manager.channels:
@@ -407,7 +407,7 @@ class Interface:
                 for idx, channel_id in enumerate(self.manager.channels, 1):
                     print(f"{str(idx).center(4)} │ {channel_id}")
                 
-                input(f"\n{Fore.YELLOW}Press Enter to return{Style.RESET_ALL}")
+                input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
 
             elif choice == "3":
                 if not self.manager.channels:
@@ -421,7 +421,7 @@ class Interface:
                 for idx, channel_id in enumerate(self.manager.channels, 1):
                     print(f"{str(idx).center(4)} │ {channel_id}")
                 
-                choice = self.input_prompt("\nEnter number to remove or press Enter to cancel")
+                choice = self.input_prompt(f"\n{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} to remove or press {Fore.YELLOW}Enter{Fore.WHITE} to cancel")
                 
                 if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                     removed = self.manager.channels.pop(int(choice) - 1)
@@ -444,30 +444,30 @@ class Interface:
 
             for num, title, desc in options:
                 print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
-            choice = input(Fore.GREEN + "\nChoose an option: ")
+            choice = self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
 
             if choice == "1":
-                days = input(Fore.YELLOW + "Enter number of days: ")
+                days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days")
                 if days.isdigit() and int(days) > 0:
                     self.manager.config["days_filter"] = int(days)
                     self.manager.save_config()
                     print(Fore.GREEN + "Settings updated!")
                 else:
                     print(Fore.RED + "Invalid input.")
-                input(Fore.YELLOW + "\nPress Enter to continue...")
+                input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
                 
             elif choice == "2":
-                new_length = input(Fore.YELLOW + "Enter number of minutes: ")
+                new_length = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of minutes")
                 if new_length.isdigit() and int(new_length) > 0:
                     self.manager.config["min_video_length"] = int(new_length)
                     self.manager.save_config()
                     print(Fore.GREEN + "Settings updated!")
                 else:
                     print(Fore.RED + "Invalid input.")
-                input(Fore.YELLOW + "\nPress Enter to continue...")
+                input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
 
             elif choice == "3":
-                api_key = input(Fore.YELLOW + "Enter YouTube API Key: ")
+                api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}")
                 if api_key.strip():
                     self.manager.config["api_key"] = api_key.strip()
                     self.manager.save_config()
@@ -475,7 +475,7 @@ class Interface:
                     print(Fore.GREEN + "API Key updated!")
                 else:
                     print(Fore.RED + "Invalid API Key.")
-                input(Fore.YELLOW + "\nPress Enter to continue...")
+                input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
 
             elif choice == "4":
                 break
@@ -498,7 +498,7 @@ def main():
             break
         else:
             print(Fore.RED + "Invalid choice!")
-            input(Fore.YELLOW + "\nPress Enter to continue...")
+            input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
 
 if __name__ == "__main__":
     main()
