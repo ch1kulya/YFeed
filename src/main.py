@@ -4,6 +4,8 @@ import json
 import feedparser
 import webbrowser
 import pyfiglet
+import isodate
+import re
 from colorama import Fore, Style, init
 from datetime import datetime, timedelta
 import requests
@@ -103,10 +105,12 @@ class YouTubeFeedManager:
     @staticmethod
     def load_config() -> Dict:
         """Load configuration from file"""
+        default_config = {"days_filter": 7, "api_key": "", "min_video_length": 2}
         if not os.path.exists(CONFIG_FILE):
-            return {"days_filter": 7, "api_key": ""}
+            return default_config
         with open(CONFIG_FILE, "r") as f:
-            return json.load(f)
+            config = json.load(f)
+        return {**default_config, **config}
 
     def save_config(self) -> None:
         """Save configuration to file"""
@@ -141,23 +145,74 @@ class YouTubeFeedManager:
         os.makedirs(os.path.dirname(WATCHED_FILE), exist_ok=True)
         with open(WATCHED_FILE, "w") as f:
             f.write("\n".join(self.watched))
+            
+    @staticmethod
+    def remove_emojis(text: str) -> str:
+        """Remove emojis from text"""
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F700-\U0001F77F"  # alchemical symbols
+            "\U0001F780-\U0001F7FF"  # Geometric Shapes Extended
+            "\U0001F800-\U0001F8FF"  # Supplemental Arrows-C
+            "\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+            "\U0001FA00-\U0001FA6F"  # Chess Symbols
+            "\U0001FA70-\U0001FAFF"  # Symbols and Pictographs Extended-A
+            "\U00002702-\U000027B0"  # Dingbats
+            "\U000024C2-\U0001F251"  # Enclosed characters
+            "]+",
+            flags=re.UNICODE
+        )
+        normal_text = emoji_pattern.sub(r'', text).lower().capitalize()
+        return normal_text
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
-        """Fetch videos for a channel and remove temporary messages"""
+        """Fetch videos for a channel, filter by length, and remove emojis"""
         try:
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
             feed = feedparser.parse(url)
             videos = []
             for entry in feed.entries:
-                published = datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z")
+                video_id = entry.id.split(":")[-1]
+                
+                # Get video details from API
+                try:
+                    video_response = self.channel_extractor.youtube.videos().list(
+                        part="contentDetails",
+                        id=video_id
+                    ).execute()
+                    items = video_response.get("items", [])
+                    if not items:
+                        continue
+                    
+                    duration = items[0]["contentDetails"]["duration"]
+                    
+                    # Convert ISO 8601 duration to seconds
+                    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
+                    hours = int(match.group(1)) if match.group(1) else 0
+                    minutes = int(match.group(2)) if match.group(2) else 0
+                    seconds = int(match.group(3)) if match.group(3) else 0
+                    total_seconds = hours * 3600 + minutes * 60 + seconds
+                    
+                    # Skip if video is shorter than the minimum length
+                    min_seconds = self.config.get("min_video_length", 2) * 60
+                    if total_seconds < min_seconds:
+                        continue
+                    
+                except HttpError as e:
+                    print(Fore.RED + f"Error fetching video details: {e}")
+                    continue
+
                 videos.append({
-                    "title": entry.title,
+                    "title": self.remove_emojis(entry.title),
                     "link": entry.link,
-                    "published": published,
+                    "published": datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z"),
                     "id": entry.id,
                     "author": entry.author if 'author' in entry else "Unknown",
                 })
-            os.system('cls' if os.name == 'nt' else 'clear')
+            
             return videos
         except Exception as e:
             print(Fore.RED + f"Error fetching videos for channel {channel_id}: {str(e)}")
@@ -241,6 +296,7 @@ class Interface:
         
         for channel_id in self.manager.channels:
             videos.extend(self.manager.fetch_videos(channel_id))
+            print(Fore.GREEN + "Video fetched!")
         
         if not videos:
             self.show_message("No videos found!", Fore.RED)
@@ -250,12 +306,11 @@ class Interface:
         cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
         videos = [video for video in videos if video["published"] > cutoff_date]
 
-        # Calculate column widths
         index_width = len(str(len(videos)))
         time_width = 12
-        channel_width = 12
+        channel_width = 18
         remaining_width = self.terminal_width - (index_width + time_width + channel_width)
-        title_width = remaining_width
+        title_width = int(remaining_width * 0.9)
 
         header = (
             f"{Fore.CYAN}{'#'.ljust(index_width)} │ "
@@ -263,6 +318,8 @@ class Interface:
             f"{'Channel'.ljust(channel_width)} │ "
             f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
         )
+        os.system("cls" if os.name == "nt" else "clear")
+        self.draw_logo()
         print(header)
 
         for idx, video in enumerate(videos):
@@ -340,7 +397,6 @@ class Interface:
                     self.show_message("No channels added yet!", Fore.YELLOW)
                     continue
 
-                # Print channels in a nice table
                 print(f"{Fore.CYAN}{'#'.center(4)} │ {'Channel ID'}{Style.RESET_ALL}")
                 
                 for idx, channel_id in enumerate(self.manager.channels, 1):
@@ -376,8 +432,9 @@ class Interface:
             self.draw_logo()
             options = [
                 ("1", "Days Filter", f"- Current: {self.manager.config['days_filter']}"),
-                ("2", "YouTube API Key", f"- Current: {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'}"),
-                ("3", "Return", "")
+                ("2", "Minimum Video Length", f"- Current: {self.manager.config['min_video_length']} minutes"),
+                ("3", "YouTube API Key", f"- Current: {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'}"),
+                ("4", "Return", "")
             ]
 
             for num, title, desc in options:
@@ -393,8 +450,18 @@ class Interface:
                 else:
                     print(Fore.RED + "Invalid input.")
                 input(Fore.YELLOW + "\nPress Enter to continue...")
-
+                
             elif choice == "2":
+                new_length = input(Fore.YELLOW + "Enter number of minutes: ")
+                if new_length.isdigit() and int(new_length) > 0:
+                    self.manager.config["min_video_length"] = int(new_length)
+                    self.manager.save_config()
+                    print(Fore.GREEN + "Settings updated!")
+                else:
+                    print(Fore.RED + "Invalid input.")
+                input(Fore.YELLOW + "\nPress Enter to continue...")
+
+            elif choice == "3":
                 api_key = input(Fore.YELLOW + "Enter YouTube API Key: ")
                 if api_key.strip():
                     self.manager.config["api_key"] = api_key.strip()
@@ -405,7 +472,7 @@ class Interface:
                     print(Fore.RED + "Invalid API Key.")
                 input(Fore.YELLOW + "\nPress Enter to continue...")
 
-            elif choice == "3":
+            elif choice == "4":
                 break
 
 def main():
