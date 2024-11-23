@@ -4,6 +4,7 @@ import feedparser
 import webbrowser
 import pyfiglet
 import re
+from time import sleep
 from colorama import Fore, Style, init
 from datetime import datetime, timedelta
 from typing import Dict, List, Set
@@ -320,6 +321,8 @@ class Interface:
             f"{'Channel'.ljust(channel_width)} │ "
             f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
         )
+        print(Fore.GREEN + Style.BRIGHT + "All videos fetched!")
+        sleep(0.4)
         os.system("cls" if os.name == "nt" else "clear")
         self.draw_logo()
         print(header)
