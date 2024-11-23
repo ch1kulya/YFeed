@@ -1,91 +1,85 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal enabledelayedexpansion
 
-set "PYTHON_DIR=demo"
-set "PYTHON_URL=https://www.python.org/ftp/python/3.12.1/python-3.12.1-embed-amd64.zip"
-set "MAIN_FILE_URL=https://raw.githubusercontent.com/ch1kulya/YFeed/main/src/main.py"
+:: Set title
+title YFeed Installer
 
-if not exist "%PYTHON_DIR%" (
-    echo Creating directory %PYTHON_DIR%...
-    mkdir "%PYTHON_DIR%"
+:: Check if running with administrator privileges
+net session >nul 2>&1
+if %errorLevel% == 0 (
+    echo Running with administrator privileges...
+) else (
+    echo Please run this script as administrator
+    echo Right click on the script and select "Run as administrator"
+    pause
+    exit
 )
 
-cd "%PYTHON_DIR%"
+:: Create temporary directory
+set "TEMP_DIR=%TEMP%\yfeed_install"
+if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 
-echo Downloading portable Python...
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%PYTHON_URL%' -OutFile 'python_embed.zip'"
-if errorlevel 1 (
-    echo Error downloading Python!
-    cd ..
-    exit /b 1
+:: Check if Python is installed
+python --version >nul 2>&1
+if %errorLevel% == 0 (
+    echo Python is already installed
+    goto :INSTALL_DEPENDENCIES
 )
 
-echo Extracting Python...
-powershell -Command "Expand-Archive -Path 'python_embed.zip' -DestinationPath '.' -Force"
-if errorlevel 1 (
-    echo Error extracting Python!
-    cd ..
-    exit /b 1
-)
-del "python_embed.zip"
+:INSTALL_PYTHON
+echo Installing Python...
+:: Download Python installer
+curl -L "https://www.python.org/ftp/python/3.12.7/python-3.12.7-amd64.exe" -o "%TEMP_DIR%\python_installer.exe"
 
-mkdir "Lib"
-mkdir "Lib\site-packages"
+:: Install Python
+echo Installing Python...
+"%TEMP_DIR%\python_installer.exe" /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
 
-for /f "delims=" %%i in ('dir /b python*._pth') do (
-    echo Modifying %%i
-    (
-        echo python312.zip
-        echo .
-        echo Lib\site-packages
-        echo .
-        echo import site
-    ) > "%%i"
+:: Verify Python installation
+echo Verifying Python installation...
+python --version >nul 2>&1
+if %errorLevel% == 1 (
+    echo Failed to install Python
+    goto :ERROR
 )
 
-echo Downloading setuptools and pip...
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'get-pip.py'"
-if errorlevel 1 (
-    echo Error downloading get-pip.py!
-    cd ..
-    exit /b 1
-)
+:INSTALL_DEPENDENCIES
+:: Create application directory
+set "INSTALL_DIR=%USERPROFILE%\YFeed"
+if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+if not exist "%INSTALL_DIR%\data" mkdir "%INSTALL_DIR%\data"
 
-echo Installing pip...
-python.exe get-pip.py --no-warn-script-location
-if errorlevel 1 (
-    echo Error installing pip!
-    cd ..
-    exit /b 1
-)
-del "get-pip.py"
+:: Download main.py
+echo Downloading YFeed...
+curl -L "https://raw.githubusercontent.com/ch1kulya/YFeed/refs/heads/main/src/main.py" -o "%INSTALL_DIR%\main.py"
 
+:: Install required packages
 echo Installing dependencies...
-python.exe -m pip install --no-warn-script-location feedparser colorama google-api-python-client pyfiglet wcwidth
-if errorlevel 1 (
-    echo Error installing dependencies!
-    cd ..
-    exit /b 1
-)
+python -m pip install --upgrade pip
+python -m pip install feedparser pyfiglet colorama google-api-python-client
 
-echo Downloading main.py...
-powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%MAIN_FILE_URL%' -OutFile 'main.py'"
-if errorlevel 1 (
-    echo Error downloading main.py!
-    cd ..
-    exit /b 1
-)
+:: Create launcher script
+echo @echo off > "%INSTALL_DIR%\YFeed.bat"
+echo cd /d "%INSTALL_DIR%" >> "%INSTALL_DIR%\YFeed.bat"
+echo python main.py >> "%INSTALL_DIR%\YFeed.bat"
+echo pause >> "%INSTALL_DIR%\YFeed.bat"
 
-echo Creating launch script...
-(
-    echo @echo off
-    echo MODE CON: COLS=120 LINES=30
-    echo cd /d "%%~dp0"
-    echo python.exe main.py
-    echo pause
-) > "start.bat"
+:: Create desktop shortcut
+echo Creating desktop shortcut...
+set "SHORTCUT=%USERPROFILE%\Desktop\YFeed.lnk"
+powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut('%SHORTCUT%'); $SC.TargetPath = '%INSTALL_DIR%\YFeed.bat'; $SC.WorkingDirectory = '%INSTALL_DIR%'; $SC.IconLocation = '%SystemRoot%\System32\SHELL32.dll,41'; $SC.Save()"
 
-echo Installation complete! Please run start.bat to launch the program.
-cd ..
+:: Cleanup
+echo Cleaning up...
+if exist "%TEMP_DIR%" rd /s /q "%TEMP_DIR%"
+
+echo Installation completed successfully!
+echo You can now run YFeed from your desktop shortcut
+echo or from %INSTALL_DIR%\YFeed.bat
 pause
 exit /b 0
+
+:ERROR
+echo An error occurred during installation
+pause
+exit /b 1
