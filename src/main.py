@@ -345,15 +345,18 @@ class Interface:
                 color_time = Fore.LIGHTBLACK_EX
             elif delta.days == 0:
                 color = Fore.WHITE
+                color_time = Fore.MAGENTA
+            elif delta.days == 1:
+                color = Fore.WHITE
                 color_time = Fore.LIGHTMAGENTA_EX
             else:
                 color = Fore.WHITE
                 color_time = Fore.WHITE
 
             print(
-                f"{color}{str(idx + 1).rjust(index_width)} │ "
-                f"{title.ljust(title_width)} │ "
-                f"{channel_name.ljust(channel_width)} │ "
+                f"{color}{str(idx + 1).rjust(index_width)} {Fore.CYAN}│{color} "
+                f"{title.ljust(title_width)} {Fore.CYAN}│{color} "
+                f"{channel_name.ljust(channel_width)} {Fore.CYAN}│{color} "
                 f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
             )
 
