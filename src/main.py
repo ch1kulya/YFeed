@@ -274,7 +274,7 @@ class Interface:
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
         """Display message without excessive spacing"""
         print(f"{color}{message}{Style.RESET_ALL}")
-        input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
+        input(Fore.WHITE + f"Press {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
 
     def main_menu(self) -> str:
         """Display main menu"""
@@ -430,6 +430,8 @@ class Interface:
 
             elif choice == "4":
                 break
+            else:
+                self.show_message("Invalid choice!", Fore.RED)
 
     def settings_menu(self) -> None:
         """Display settings menu"""
@@ -479,6 +481,8 @@ class Interface:
 
             elif choice == "4":
                 break
+            else:
+                self.show_message("Invalid choice!", Fore.RED)
 
 def main():
     """Main application entry point"""
@@ -494,11 +498,10 @@ def main():
         elif choice == "3":
             interface.settings_menu()
         elif choice == "4":
-            print(Fore.YELLOW + "Goodbye!")
+            print(Fore.YELLOW + Style.BRIGHT + "Goodbye!")
             break
         else:
-            print(Fore.RED + "Invalid choice!")
-            input(Fore.WHITE + f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
+            interface.show_message("Invalid choice!", Fore.RED)
 
 if __name__ == "__main__":
     main()
