@@ -4,7 +4,7 @@ import feedparser
 import webbrowser
 import pyfiglet
 import re
-from colorama import Fore, Style, init
+from colorama import Fore, Style, init, Back
 from datetime import datetime, timedelta
 from typing import Dict, List, Set
 from googleapiclient.discovery import build
@@ -267,10 +267,6 @@ class Interface:
             print(" " * 3 + line)
         print("\n")
 
-    def print_header(self, title: str) -> None:
-        """Print header"""
-        print(f"{Fore.CYAN}[ {title} ]{Style.RESET_ALL}")
-
     def input_prompt(self, prompt: str) -> str:
         """Styled input prompt"""
         return input(f"{Fore.GREEN}{prompt}: {Style.RESET_ALL}")
@@ -319,7 +315,7 @@ class Interface:
         title_width = int(remaining_width * 0.9)
 
         header = (
-            f"{Fore.CYAN}{'#'.ljust(index_width)} │ "
+            f"{Fore.CYAN}{Style.BRIGHT}{'#'.ljust(index_width)} │ "
             f"{'Title'.ljust(title_width)} │ "
             f"{'Channel'.ljust(channel_width)} │ "
             f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
@@ -343,16 +339,19 @@ class Interface:
 
             if video["id"] in self.manager.watched:
                 color = Fore.LIGHTBLACK_EX
+                color_time = Fore.LIGHTBLACK_EX
             elif delta.days == 0:
-                color = Fore.MAGENTA
+                color = Fore.WHITE
+                color_time = Fore.LIGHTMAGENTA_EX
             else:
                 color = Fore.WHITE
+                color_time = Fore.WHITE
 
             print(
                 f"{color}{str(idx + 1).rjust(index_width)} │ "
                 f"{title.ljust(title_width)} │ "
                 f"{channel_name.ljust(channel_width)} │ "
-                f"{time_ago.ljust(time_width)}{Style.RESET_ALL}"
+                f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
             )
 
         choice = self.input_prompt("\nSelect video number or press Enter to return")
@@ -403,7 +402,7 @@ class Interface:
                     self.show_message("No channels added yet!", Fore.YELLOW)
                     continue
 
-                print(f"{Fore.CYAN}{'#'.center(4)} │ {'Channel ID'}{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}{Style.BRIGHT}{'#'.center(4)} │ {'Channel ID'}{Style.RESET_ALL}")
                 
                 for idx, channel_id in enumerate(self.manager.channels, 1):
                     print(f"{str(idx).center(4)} │ {channel_id}")
