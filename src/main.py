@@ -208,8 +208,6 @@ class YouTubeFeedManager:
                     if total_seconds < min_seconds:
                         continue
 
-                    print(Fore.GREEN + "Video fetched!")
-
                     videos.append({
                         "title": self.remove_emojis(entry.title),
                         "link": entry.link,
@@ -300,6 +298,7 @@ class Interface:
         
         for channel_id in self.manager.channels:
             videos.extend(self.manager.fetch_videos(channel_id))
+            print(Fore.GREEN + f"Videos from {channel_id} fetched!")
         
         if not videos:
             self.show_message("No videos found!", Fore.RED)
