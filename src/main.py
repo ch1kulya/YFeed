@@ -10,6 +10,9 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Set
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from yt_dlp import YoutubeDL
+import vlc
+from tqdm import tqdm
 
 init(autoreset=True)
 
@@ -87,6 +90,16 @@ class YouTubeChannelExtractor:
             return bool(response.get("items"))
         except HttpError:
             return False
+        
+class QuietLogger:
+    def debug(self, msg):
+        pass
+    def info(self, msg):
+        pass
+    def warning(self, msg):
+        pass
+    def error(self, msg):
+        pass
 
 class YouTubeFeedManager:
     def __init__(self):
@@ -95,6 +108,7 @@ class YouTubeFeedManager:
         self.channels = self.load_channels()
         self.watched = self.load_watched()
         self.channel_extractor = None
+        self.progress_bar = None
         
         # Initialize API if key exists
         if self.config.get('api_key'):
@@ -224,6 +238,121 @@ class YouTubeFeedManager:
         except Exception as e:
             print(Fore.RED + f"Error fetching videos for channel {channel_id}: {str(e)}")
             return []
+
+    def download_progress_hook(self, d):
+        if d['status'] == 'downloading':
+            total_bytes = d.get('total_bytes', 0)
+            downloaded_bytes = d.get('downloaded_bytes', 0)
+
+            if self.progress_bar is None and total_bytes > 0:
+                self.progress_bar = tqdm(total=total_bytes, unit='B', unit_scale=True, desc="Downloading", dynamic_ncols=True)
+
+            if self.progress_bar is not None:
+                self.progress_bar.update(downloaded_bytes - self.progress_bar.n)
+
+        elif d['status'] == 'finished':
+            if self.progress_bar is not None:
+                self.progress_bar.close()
+                self.progress_bar = None
+    
+    def watch_video(self, url):
+        temp_file = "temp"  # Temporary file to hold the video
+
+        # yt-dlp options for downloading the best video+audio quality
+        ydl_opts = {
+            'format': 'bestvideo[height<=1080]+bestaudio/best[height<=1080]',  # Set quality
+            'outtmpl': temp_file,                 # Save video temporarily
+            'progress_hooks': [self.download_progress_hook],  # Add progress hook
+            'quiet': True,                        # Suppress logs for cleaner output
+            'no_warnings': True,
+            'logger': QuietLogger(),
+        }
+
+        try:
+            # Clean up temporary file
+            if os.path.exists(temp_file + ".webm"):
+                os.remove(temp_file + ".webm")
+                print(Style.DIM + "Temporary file removed.")
+            # Download the video
+            with YoutubeDL(ydl_opts) as ydl:
+                print(Style.DIM + "Downloading video...")
+                ydl.download([url])
+            
+            # Play the video using python-vlc
+            print(Style.DIM + "Playing video...")
+            self.play_video(temp_file + ".webm")
+            
+        except Exception as e:
+            print(Fore.RED + f"An error occurred: {e}")
+            print(Style.DIM + "Playing in browser.")
+            sleep(5)
+            webbrowser.open(url)
+        finally:
+            # Clean up temporary file
+            if os.path.exists(temp_file + ".webm"):
+                os.remove(temp_file + ".webm")
+                print(Style.DIM + "Temporary file removed.")
+                
+    def play_video(self, video_file):
+        # Create a VLC instance
+        instance = vlc.Instance('--no-video-title-show', '--quiet')
+        player = instance.media_player_new()
+
+        # Load the video file into VLC player
+        media = instance.media_new(video_file)
+        player.set_media(media)
+        player.set_fullscreen(False)
+
+        # Play the video
+        player.play()
+
+        print(f"\n{Style.BRIGHT}Video Controls{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}1.{Fore.WHITE} '{Fore.YELLOW}go{Fore.WHITE} [{Fore.YELLOW}seconds{Fore.WHITE}]' — Move to the given percentage of the video")
+        print(f"{Fore.CYAN}2.{Fore.WHITE} '{Fore.YELLOW}v{Fore.WHITE} [{Fore.YELLOW}volume{Fore.WHITE}]' — Set volume (1 to 100)")
+        print(f"{Fore.CYAN}3.{Fore.WHITE} '{Fore.YELLOW}q{Fore.WHITE}' — Quit the player{Style.RESET_ALL}")
+        
+        while True:
+            # Wait for user input for controls
+            command = input("Enter command: ").strip()
+
+            if command.startswith("go"):
+                try:
+                    # Extract percentage from command
+                    percentage = int(command.split()[1])
+                    if 0 <= percentage <= 100:
+                        total_duration = player.get_length()  
+                        if total_duration > 0:
+                            target_time = (total_duration * percentage) // 100
+                            player.set_time(target_time)
+                            print(f"Video moved to {Fore.YELLOW}{percentage}%{Style.RESET_ALL}.")
+                        else:
+                            print(Fore.RED + "Unable to retrieve video duration. Please try again.")
+                    else:
+                        print(Fore.RED + "Percentage must be between 0 and 100.")
+                except ValueError:
+                    print(Fore.RED + "Invalid percentage value. Please enter a valid number.")
+            
+            elif command.startswith("v"):
+                try:
+                    # Extract volume from command
+                    volume = int(command.split()[1])
+                    if 0 <= volume <= 100:
+                        player.audio_set_volume(volume)
+                        print(f"Volume set to {Fore.YELLOW}{volume}{Style.RESET_ALL}.")
+                    else:
+                        print(Fore.RED + "Volume must be between 0 and 100.")
+                except ValueError:
+                    print(Fore.RED + "Invalid volume value. Please enter a number between 1 and 100.")
+            
+            elif command == "q":
+                print("Exiting video player...")
+                player.stop()
+                break  # Exit the loop and stop the video player
+
+            else:
+                print(Fore.RED + "Invalid command. Please enter a valid command.")
+
+        print("Video playback finished.")
 
 class Interface:
     def __init__(self, manager: YouTubeFeedManager):
@@ -365,7 +494,10 @@ class Interface:
             video = videos[int(choice) - 1]
             self.manager.watched.add(video["id"])
             self.manager.save_watched()
-            webbrowser.open(video["link"])
+            os.system("cls" if os.name == "nt" else "clear")
+            self.draw_logo()
+            manager = YouTubeFeedManager()
+            manager.watch_video(video["link"])
 
     def channels_menu(self) -> None:
         # Display channels menu
