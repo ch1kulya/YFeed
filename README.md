@@ -6,7 +6,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 
 #### I. Setup
 1. Clone the repository
-2. Ensure you have Python installed, and then install the required libraries:
+2. Ensure you have Python, VLC and ffmpeg installed, and then install the required libraries:
 ```
 pip install -r requirements.txt
 ```
