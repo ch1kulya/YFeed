@@ -226,6 +226,7 @@ class YouTubeFeedManager:
         media = instance.media_new(video_file)
         player.set_media(media)
         player.set_fullscreen(False)
+        player.audio_set_volume(50)
 
         # Play the video
         player.play()
@@ -236,8 +237,8 @@ class YouTubeFeedManager:
         print(f"{Fore.CYAN}3.{Fore.WHITE} '{Fore.YELLOW}q{Fore.WHITE}'{Fore.LIGHTBLACK_EX} — Quit the player{Style.RESET_ALL}")
         
         # Output placeholders
-        output_row = 28
-        input_row = 27
+        output_row = 24
+        input_row = 23
         def clear_line(row):
             sys.stdout.write(f"{Cursor.POS(1, row)}{' ' * os.get_terminal_size().columns}{Cursor.POS(1, row)}")
             sys.stdout.flush()
@@ -245,7 +246,7 @@ class YouTubeFeedManager:
         while True:
             clear_line(input_row)
             # Wait for user input for controls
-            sys.stdout.write(f"{Cursor.POS(1, input_row)}Enter command: ")
+            sys.stdout.write(f"{Cursor.POS(1, input_row)}Enter {Fore.YELLOW}command{Style.RESET_ALL}: ")
             sys.stdout.flush()
             command = input().strip()
             clear_line(output_row)
