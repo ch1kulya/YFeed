@@ -107,21 +107,36 @@ class YouTubeFeedManager:
     @staticmethod
     def iso_duration_to_seconds(duration: str) -> int:
         # Convert ISO 8601 duration format to total seconds
-        match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration)
+        match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?|P(\d+)D?", duration)
+        if not match:
+            print(f"Invalid duration format: {duration}")
+            return 0
+        days = int(match.group(4)) if match.group(4) else 0
         hours = int(match.group(1)) if match.group(1) else 0
         minutes = int(match.group(2)) if match.group(2) else 0
         seconds = int(match.group(3)) if match.group(3) else 0
-        return hours * 3600 + minutes * 60 + seconds
+        return days * 86400 + hours * 3600 + minutes * 60 + seconds
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
-        # Fetch videos for a channel
         try:
             # Fetch the feed data from the channel
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
             feed = feedparser.parse(url)
 
+            if not feed.entries:
+                print(Fore.RED + "No entries found in the feed.")
+                return []
+
             # Collect all video IDs in the current feed
-            video_ids = [entry.id.split(":")[-1] for entry in feed.entries]
+            video_ids = []
+            for entry in feed.entries:
+                if "id" in entry and ":" in entry.id:
+                    video_ids.append(entry.id.split(":")[-1])
+                else:
+                    print(Fore.YELLOW + f"Skipping invalid entry: {entry}")
+            
+            if not video_ids:
+                raise ValueError("No video IDs extracted from the feed.")
 
             # Fetch details for all videos in a single request
             try:
@@ -129,6 +144,10 @@ class YouTubeFeedManager:
                     part="contentDetails",
                     id=','.join(video_ids)
                 ).execute()
+
+                if "items" not in video_response or not video_response["items"]:
+                    print(Fore.RED + "No video details found in the API response.")
+                    return []
 
                 # Extract the duration from the response and filter videos
                 min_seconds = self.config.get("min_video_length", 2) * 60
@@ -147,11 +166,17 @@ class YouTubeFeedManager:
                     if total_seconds < min_seconds:
                         continue
 
+                    try:
+                        published_date = datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z")
+                    except ValueError:
+                        print(f"Invalid date format for entry: {entry.published}")
+                        continue
+
                     videos.append({
                         "title": self.remove_emojis(entry.title),
                         "link": entry.link,
-                        "published": datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z"),
-                        "id": entry.id,
+                        "published": published_date,
+                        "id": video_id,
                         "author": entry.author if 'author' in entry else "Unknown",
                     })
 

@@ -117,7 +117,15 @@ class Interface:
             channel_name = video.get("author", "Unknown Channel")
             if len(channel_name) > channel_width - 3:
                 channel_name = channel_name[:channel_width-3] + "..."
-
+            
+            cutoff_index = len(title)
+            for char in ["|", "[", "("]:
+                index = title.find(char)
+                if 0 <= index < cutoff_index:
+                    cutoff_index = index
+                    
+            title = title[:cutoff_index].strip()
+                    
             if len(title) > title_width - 3:
                 title = title[:title_width-3] + "..."
 
@@ -126,7 +134,7 @@ class Interface:
                 color_time = Fore.LIGHTBLACK_EX
             elif delta.days == 0:
                 color = Fore.WHITE
-                color_time = Fore.MAGENTA
+                color_time = Fore.LIGHTYELLOW_EX
             elif delta.days == 1:
                 color = Fore.WHITE
                 color_time = Fore.LIGHTMAGENTA_EX
@@ -192,10 +200,10 @@ class Interface:
                     self.show_message("No channels added yet!", Fore.YELLOW)
                     continue
 
-                print(f"{Fore.CYAN}{Style.BRIGHT}{'#'.center(4)} │ {'Channel ID'}{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel ID'}{Style.RESET_ALL}")
                 
                 for idx, channel_id in enumerate(self.manager.channels, 1):
-                    print(f"{str(idx).center(4)} │ {channel_id}")
+                    print(f"{str(idx).center(2)} │ {channel_id}")
                 
                 input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
 
@@ -206,10 +214,10 @@ class Interface:
 
                 self.draw_logo()
                 
-                print(f"{Fore.CYAN}{'#'.center(4)} │ {'Channel ID'}{Style.RESET_ALL}")
+                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel ID'}{Style.RESET_ALL}")
                 
                 for idx, channel_id in enumerate(self.manager.channels, 1):
-                    print(f"{str(idx).center(4)} │ {channel_id}")
+                    print(f"{str(idx).center(2)} │ {channel_id}")
                 
                 choice = self.input_prompt(f"\n{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} to remove or press {Fore.YELLOW}Enter{Fore.WHITE} to cancel")
                 
