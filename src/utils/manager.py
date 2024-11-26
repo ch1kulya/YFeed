@@ -1,10 +1,11 @@
 import os
+import sys
 import json
 import feedparser
 import webbrowser
 import re
 from time import sleep
-from colorama import Fore, Style
+from colorama import Fore, Style, Cursor
 from datetime import datetime
 from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
@@ -230,49 +231,60 @@ class YouTubeFeedManager:
         player.play()
 
         print(f"\n{Style.BRIGHT}Video Controls{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}1.{Fore.WHITE} '{Fore.YELLOW}go{Fore.WHITE} [{Fore.YELLOW}seconds{Fore.WHITE}]' — Move to the given percentage of the video")
-        print(f"{Fore.CYAN}2.{Fore.WHITE} '{Fore.YELLOW}v{Fore.WHITE} [{Fore.YELLOW}volume{Fore.WHITE}]' — Set volume (1 to 100)")
-        print(f"{Fore.CYAN}3.{Fore.WHITE} '{Fore.YELLOW}q{Fore.WHITE}' — Quit the player{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}1.{Fore.WHITE} '{Fore.YELLOW}go{Fore.WHITE} [{Fore.YELLOW}seconds{Fore.WHITE}]'{Fore.LIGHTBLACK_EX} — Move to the given percentage of the video")
+        print(f"{Fore.CYAN}2.{Fore.WHITE} '{Fore.YELLOW}v{Fore.WHITE} [{Fore.YELLOW}volume{Fore.WHITE}]'{Fore.LIGHTBLACK_EX} — Set volume (1 to 100)")
+        print(f"{Fore.CYAN}3.{Fore.WHITE} '{Fore.YELLOW}q{Fore.WHITE}'{Fore.LIGHTBLACK_EX} — Quit the player{Style.RESET_ALL}")
+        
+        # Output placeholders
+        output_row = 28
+        input_row = 27
+        def clear_line(row):
+            sys.stdout.write(f"{Cursor.POS(1, row)}{' ' * os.get_terminal_size().columns}{Cursor.POS(1, row)}")
+            sys.stdout.flush()
         
         while True:
+            clear_line(input_row)
             # Wait for user input for controls
-            command = input("Enter command: ").strip()
+            sys.stdout.write(f"{Cursor.POS(1, input_row)}Enter command: ")
+            sys.stdout.flush()
+            command = input().strip()
+            clear_line(output_row)
 
             if command.startswith("go"):
                 try:
                     # Extract percentage from command
                     percentage = int(command.split()[1])
                     if 0 <= percentage <= 100:
-                        total_duration = player.get_length()  
+                        total_duration = player.get_length()
                         if total_duration > 0:
                             target_time = (total_duration * percentage) // 100
                             player.set_time(target_time)
-                            print(f"Video moved to {Fore.YELLOW}{percentage}%{Style.RESET_ALL}.")
+                            sys.stdout.write(f"{Cursor.POS(1, output_row)}Video moved to {Fore.YELLOW}{percentage}%{Style.RESET_ALL}.\n")
                         else:
-                            print(Fore.RED + "Unable to retrieve video duration. Please try again.")
+                            sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Unable to retrieve video duration. Please try again.\n")
                     else:
-                        print(Fore.RED + "Percentage must be between 0 and 100.")
+                        sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Percentage must be between 0 and 100.\n")
                 except ValueError:
-                    print(Fore.RED + "Invalid percentage value. Please enter a valid number.")
-            
+                    sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Invalid percentage value. Please enter a valid number.\n")
+
             elif command.startswith("v"):
                 try:
                     # Extract volume from command
                     volume = int(command.split()[1])
                     if 0 <= volume <= 100:
                         player.audio_set_volume(volume)
-                        print(f"Volume set to {Fore.YELLOW}{volume}{Style.RESET_ALL}.")
+                        sys.stdout.write(f"{Cursor.POS(1, output_row)}Volume set to {Fore.YELLOW}{volume}{Style.RESET_ALL}.\n")
                     else:
-                        print(Fore.RED + "Volume must be between 0 and 100.")
+                        sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Volume must be between 0 and 100.\n")
                 except ValueError:
-                    print(Fore.RED + "Invalid volume value. Please enter a number between 1 and 100.")
-            
+                    sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Invalid volume value. Please enter a number between 1 and 100.\n")
+
             elif command == "q":
-                print("Exiting video player...")
+                sys.stdout.write(f"{Cursor.POS(1, output_row)}Exiting video player...\n")
                 player.stop()
                 break  # Exit the loop and stop the video player
 
             else:
-                print(Fore.RED + "Invalid command. Please enter a valid command.")
+                sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Invalid command. Please enter a valid command.\n")
 
-        print("Video playback finished.")
+            sys.stdout.flush()
