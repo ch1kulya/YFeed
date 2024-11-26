@@ -190,7 +190,7 @@ class YouTubeFeedManager:
 
     def download_progress_hook(self, d):
         if d['status'] == 'downloading':
-            total_bytes = d.get('total_bytes', 0)
+            total_bytes = d.get('total_bytes', d.get('total_bytes_estimate', 0))
             downloaded_bytes = d.get('downloaded_bytes', 0)
 
             if self.progress_bar is None and total_bytes > 0:
@@ -215,6 +215,9 @@ class YouTubeFeedManager:
             'quiet': True,                        # Suppress logs for cleaner output
             'no_warnings': True,
             'logger': QuietLogger(),
+            'max-downloads': 8,
+            'concurrent_fragments': 8,
+            'nooverwrites': False,
         }
 
         try:
@@ -257,9 +260,10 @@ class YouTubeFeedManager:
         player.play()
 
         print(f"\n{Style.BRIGHT}Video Controls{Style.RESET_ALL}")
-        print(f"{Fore.CYAN}1.{Fore.WHITE} '{Fore.YELLOW}go{Fore.WHITE} [{Fore.YELLOW}seconds{Fore.WHITE}]'{Fore.LIGHTBLACK_EX} — Move to the given percentage of the video")
+        print(f"{Fore.CYAN}1.{Fore.WHITE} '{Fore.YELLOW}go{Fore.WHITE} [{Fore.YELLOW}percentage{Fore.WHITE}]'{Fore.LIGHTBLACK_EX} — Move to the given percentage of the video")
         print(f"{Fore.CYAN}2.{Fore.WHITE} '{Fore.YELLOW}v{Fore.WHITE} [{Fore.YELLOW}volume{Fore.WHITE}]'{Fore.LIGHTBLACK_EX} — Set volume (1 to 100)")
-        print(f"{Fore.CYAN}3.{Fore.WHITE} '{Fore.YELLOW}q{Fore.WHITE}'{Fore.LIGHTBLACK_EX} — Quit the player{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}3.{Fore.WHITE} '{Fore.YELLOW}p{Fore.WHITE}'{Fore.LIGHTBLACK_EX} — Pause or resume the video")
+        print(f"{Fore.CYAN}4.{Fore.WHITE} '{Fore.YELLOW}q{Fore.WHITE}'{Fore.LIGHTBLACK_EX} — Quit the player{Style.RESET_ALL}")
         
         # Output placeholders
         output_row = 24
@@ -276,7 +280,7 @@ class YouTubeFeedManager:
             command = input().strip()
             clear_line(output_row)
 
-            if command.startswith("go"):
+            if command.startswith("go "):
                 try:
                     # Extract percentage from command
                     percentage = int(command.split()[1])
@@ -293,7 +297,7 @@ class YouTubeFeedManager:
                 except ValueError:
                     sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Invalid percentage value. Please enter a valid number.\n")
 
-            elif command.startswith("v"):
+            elif command.startswith("v "):
                 try:
                     # Extract volume from command
                     volume = int(command.split()[1])
@@ -304,6 +308,15 @@ class YouTubeFeedManager:
                         sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Volume must be between 0 and 100.\n")
                 except ValueError:
                     sys.stdout.write(f"{Cursor.POS(1, output_row)}{Fore.RED}Invalid volume value. Please enter a number between 1 and 100.\n")
+
+            elif command == "p":
+                # Toggle pause/resume
+                if player.is_playing():
+                    player.pause()  # Pause the video
+                    sys.stdout.write(f"{Cursor.POS(1, output_row)}Video {Fore.YELLOW}paused{Style.RESET_ALL}.\n")
+                else:
+                    player.play()  # Resume the video
+                    sys.stdout.write(f"{Cursor.POS(1, output_row)}Video {Fore.YELLOW}resumed{Style.RESET_ALL}.\n")
 
             elif command == "q":
                 sys.stdout.write(f"{Cursor.POS(1, output_row)}Exiting video player...\n")
