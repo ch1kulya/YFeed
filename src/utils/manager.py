@@ -324,7 +324,7 @@ class YouTubeFeedManager:
                 
     def play_video(self, video_file):
         # Create a VLC instance
-        instance = vlc.Instance('--no-video-title-show', '--quiet')
+        instance = vlc.Instance('--no-video-title-show', '--quiet', '--intf=dummy')
         player = instance.media_player_new()
 
         # Load the video file into VLC player
