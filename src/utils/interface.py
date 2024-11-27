@@ -103,7 +103,7 @@ class Interface:
             f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
         )
         print(Fore.GREEN + Style.BRIGHT + "All videos fetched!")
-        sleep(0.4)
+        sleep(2)
         os.system("cls" if os.name == "nt" else "clear")
         self.draw_logo()
         print(header)

@@ -4,7 +4,7 @@ import json
 import feedparser
 import webbrowser
 import re
-from time import sleep
+from time import sleep, time
 from colorama import Fore, Style, Cursor
 from datetime import datetime
 from typing import Dict, List, Set
@@ -60,7 +60,7 @@ class YouTubeFeedManager:
                 return json.load(cache_file)
         return {}
 
-    def save_cache(self, cache_data, max_cache_size=1000):
+    def save_cache(self, cache_data, max_cache_size=9999):
         if len(cache_data) > max_cache_size:
             sorted_cache = sorted(
                 cache_data.items(), 
@@ -140,8 +140,11 @@ class YouTubeFeedManager:
             video_cache = self.load_cache()
             
             # Fetch the feed data from the channel
+            feed_start_time = time()
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
             feed = feedparser.parse(url)
+            feed_time = (time() - feed_start_time) * 1000
+            print(f"Feed fetching time: {Fore.LIGHTRED_EX if feed_time > 750 else Fore.LIGHTGREEN_EX}{int(feed_time)}{Style.RESET_ALL} ms")
 
             if not feed.entries:
                 print(Fore.RED + "No entries found in the feed.")
@@ -192,10 +195,14 @@ class YouTubeFeedManager:
             # Fetch details for uncached videos
             if video_ids_to_fetch:
                 try:
+                    api_start_time = time()
                     video_response = self.channel_extractor.youtube.videos().list(
                         part="contentDetails",
                         id=','.join(video_ids_to_fetch)
                     ).execute()
+                    api_time = (time() - api_start_time) * 1000
+                    print(f"API request time: {Fore.LIGHTRED_EX if api_time > 500 else Fore.LIGHTGREEN_EX}{int(api_time)}{Style.RESET_ALL} ms")
+                    print(f"API requests made: {Fore.LIGHTYELLOW_EX}{len(video_ids_to_fetch)}{Style.RESET_ALL}")
 
                     if "items" not in video_response or not video_response["items"]:
                         print(Fore.RED + "No video details found in the API response.")
