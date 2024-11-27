@@ -180,18 +180,24 @@ class Interface:
                 if not self.manager.config.get('api_key'):
                     self.show_message("Please set YouTube API key in settings first!", Fore.RED)
                     continue
+                
+                print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to stop adding.")
 
-                link = self.input_prompt(f"{Fore.WHITE}\nEnter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
-                try:
-                    channel_id = self.manager.channel_extractor.get_channel_id(link)
-                    if channel_id not in self.manager.channels:
-                        self.manager.channels.append(channel_id)
-                        self.manager.save_channels()
-                        self.show_message("Channel added successfully!", Fore.GREEN)
-                    else:
-                        self.show_message("Channel already exists.", Fore.YELLOW)
-                except Exception as e:
-                    self.show_message(f"Error: {str(e)}", Fore.RED)
+                while True:
+                    link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
+                    if not link.strip():
+                        break
+
+                    try:
+                        channel_id = self.manager.channel_extractor.get_channel_id(link)
+                        if channel_id not in self.manager.channels:
+                            self.manager.channels.append(channel_id)
+                            self.manager.save_channels()
+                            print(Fore.GREEN + "Channel added successfully!")
+                        else:
+                            self.show_message("Channel already exists.", Fore.YELLOW)
+                    except Exception as e:
+                        self.show_message(f"Error: {str(e)}", Fore.RED)
 
             elif choice == "2":
                 self.draw_logo()
@@ -215,21 +221,35 @@ class Interface:
                     self.show_message("No channels to remove!", Fore.YELLOW)
                     continue
 
-                self.draw_logo()
-                channel_ids = self.manager.channels
-                channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
+                while True:
+                    self.draw_logo()
+                    channel_ids = self.manager.channels
+                    channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
 
-                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel Name'.ljust(30)} │ {'Channel ID'}{Style.RESET_ALL}")
-                for idx, channel_id in enumerate(channel_ids, 1):
-                    channel_name = channel_map.get(channel_id, "Unknown")
-                    print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+                    print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel Name'.ljust(30)} │ {'Channel ID'}{Style.RESET_ALL}")
+                    for idx, channel_id in enumerate(channel_ids, 1):
+                        channel_name = channel_map.get(channel_id, "Unknown")
+                        print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+                        
+                    print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel.")
 
-                choice = self.input_prompt(f"\n{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} to remove or press {Fore.YELLOW}Enter{Fore.WHITE} to cancel")
+                    choice = self.input_prompt(
+                        f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} to remove"
+                    )
 
-                if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
-                    removed = self.manager.channels.pop(int(choice) - 1)
-                    self.manager.save_channels()
-                    self.show_message(f"Removed channel: {removed}", Fore.GREEN)
+                    if not choice.strip():
+                        break
+
+                    if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
+                        removed = self.manager.channels.pop(int(choice) - 1)
+                        self.manager.save_channels()
+                        print(f"{Fore.GREEN}Removed channel:{Fore.WHITE} {removed}")
+                    else:
+                        self.show_message("Invalid choice! Please enter a valid number.", Fore.RED)
+
+                    if not self.manager.channels:
+                        self.show_message("No more channels to remove!", Fore.YELLOW)
+                        break
 
             elif choice == "4":
                 break
