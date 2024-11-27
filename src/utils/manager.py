@@ -60,14 +60,7 @@ class YouTubeFeedManager:
                 return json.load(cache_file)
         return {}
 
-    def save_cache(self, cache_data, max_cache_size=9999):
-        if len(cache_data) > max_cache_size:
-            sorted_cache = sorted(
-                cache_data.items(), 
-                key=lambda x: datetime.strptime(x[1]['published'], "%Y-%m-%dT%H:%M:%S%z")
-            )
-            cache_data = dict(sorted_cache[-max_cache_size:])
-        
+    def save_cache(self, cache_data):
         with open(CACHE_FILE, "w") as cache_file:
             json.dump(cache_data, cache_file)
 
@@ -138,7 +131,7 @@ class YouTubeFeedManager:
         try:
             # Load existing cache
             video_cache = self.load_cache()
-            
+
             # Fetch the feed data from the channel
             feed_start_time = time()
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
@@ -153,6 +146,7 @@ class YouTubeFeedManager:
             # Collect video IDs to fetch details for
             video_ids_to_fetch = []
             cached_videos = []
+            need_api_request = False
 
             for entry in feed.entries:
                 if "id" not in entry or ":" not in entry.id:
@@ -168,7 +162,7 @@ class YouTubeFeedManager:
                     # Validate cached video meets current criteria
                     total_seconds = cached_video.get('duration_seconds', 0)
                     published_date = cached_video.get('published')
-                    
+
                     if (self.config.get("min_video_length", 2) * 60 <= total_seconds <= MAX_SECONDS and 
                         cached_video.get('live_broadcast_content') not in ["live", "upcoming"]):
                         
@@ -187,11 +181,13 @@ class YouTubeFeedManager:
                         except ValueError:
                             print(f"Invalid date format for cached entry: {published_date}")
                             video_ids_to_fetch.append(video_id)
-                    else:
-                        video_ids_to_fetch.append(video_id)
                 else:
                     video_ids_to_fetch.append(video_id)
-            
+                    need_api_request = True
+
+            if not need_api_request:
+                return cached_videos
+
             # Fetch details for uncached videos
             if video_ids_to_fetch:
                 try:
@@ -219,12 +215,22 @@ class YouTubeFeedManager:
                             continue
                         
                         item = items[0]
-                        live_broadcast_content = item.get("liveBroadcastContent")
-                        if live_broadcast_content in ["live", "upcoming"]:
-                            continue  # Skip streams and upcoming broadcasts
-
                         duration = item["contentDetails"]["duration"]
                         total_seconds = self.iso_duration_to_seconds(duration)
+                        live_broadcast_content = item.get("liveBroadcastContent")
+                        
+                        # Cache the video details
+                        cache_data = self.load_cache()
+                        if video_id not in cache_data:
+                            video_cache[video_id] = {
+                                'duration_seconds': total_seconds,
+                                'live_broadcast_content': live_broadcast_content,
+                                'published': entry.published
+                            }
+                        self.save_cache(cache_data)                        
+                    
+                        if live_broadcast_content in ["live", "upcoming"]:
+                            continue  # Skip streams and upcoming broadcasts
 
                         if total_seconds < self.config.get("min_video_length", 2) * 60 or total_seconds > MAX_SECONDS:
                             continue
@@ -234,13 +240,6 @@ class YouTubeFeedManager:
                         except ValueError:
                             print(f"Invalid date format for entry: {entry.published}")
                             continue
-
-                        # Cache the video details
-                        video_cache[video_id] = {
-                            'duration_seconds': total_seconds,
-                            'live_broadcast_content': live_broadcast_content,
-                            'published': entry.published
-                        }
 
                         # Add to videos list
                         cached_videos.append({

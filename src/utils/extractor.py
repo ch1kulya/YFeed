@@ -17,11 +17,14 @@ class YouTubeChannelExtractor:
         if "youtube.com/channel/" in link:
             channel_id = link.split("channel/")[-1].split("/")[0]
             if self._validate_channel_id(channel_id):
+                print(f'Your slug: {channel_id}')
                 return channel_id
         elif "/@" in link or "/user/" in link:
             username = link.split("/")[-1]
+            print(f'Your slug: {username}')
             return self._get_channel_id_from_username(username)
         elif not any(x in link for x in ["youtube.com", "youtu.be"]):
+            print(f'Your slug: {link}')
             return self._get_channel_id_from_username(link)
 
         raise ValueError("Invalid channel link format")
@@ -33,14 +36,28 @@ class YouTubeChannelExtractor:
                 part="id",
                 q=username,
                 type="channel",
-                maxResults=1
+                maxResults=3
             )
             response = request.execute()
 
             if not response.get("items"):
                 raise ValueError(f"No channel found for username: {username}")
-
-            return response["items"][0]["id"]["channelId"]
+            
+            channels = []
+            for item in response["items"]:
+                channel_id = item["id"]["channelId"]
+                channel_request = self.youtube.channels().list(
+                    part="statistics",
+                    id=channel_id
+                )
+                channel_response = channel_request.execute()
+                subscribers_count = int(channel_response["items"][0]["statistics"]["subscriberCount"])
+                channels.append((channel_id, subscribers_count))
+            
+            best_channel = max(channels, key=lambda x: x[1])
+            if best_channel[1] < 100:
+                raise ValueError(f"Channel does not have at least 100 subscribers")
+            return best_channel[0]
         except HttpError as e:
             raise ValueError(f"YouTube API error: {str(e)}")
 

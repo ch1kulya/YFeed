@@ -167,6 +167,10 @@ class Interface:
         # Display channels menu
         while True:
             self.draw_logo()
+            index_width = 2
+            name_width = 30
+            id_width = 26
+            separator = "-" * (index_width + 1) + "+" + "-" * (name_width + 2) + "+" + "-" * (id_width)
 
             options = [
                 ("1", "Add Channel", "- Add a new YouTube channel to follow"),
@@ -212,11 +216,6 @@ class Interface:
 
                 channel_ids = self.manager.channels
                 channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
-
-                index_width = 2
-                name_width = 30
-                id_width = 26
-                separator = "-" * (index_width + 1) + "+" + "-" * (name_width + 2) + "+" + "-" * (id_width)
                 print(Fore.CYAN + separator)
                 print(f"{Fore.CYAN}{'#'.center(index_width)} │ {'Channel Name'.ljust(name_width)} │ {'Channel ID'}{Style.RESET_ALL}")
                 print(Fore.CYAN + separator)
