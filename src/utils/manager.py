@@ -12,7 +12,7 @@ from googleapiclient.errors import HttpError
 from yt_dlp import YoutubeDL
 import vlc
 from tqdm import tqdm
-from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE
+from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS
 from utils.extractor import YouTubeChannelExtractor
 
 class QuietLogger:
@@ -159,11 +159,18 @@ class YouTubeFeedManager:
 
                     if not items:
                         continue
+                    
+                    live_broadcast_content = items[0].get("liveBroadcastContent")
+                    if live_broadcast_content in ["live", "upcoming"]:
+                        continue  # Skip streams and upcoming broadcasts
 
                     duration = items[0]["contentDetails"]["duration"]
                     total_seconds = self.iso_duration_to_seconds(duration)
 
                     if total_seconds < min_seconds:
+                        continue
+                    
+                    if total_seconds > MAX_SECONDS:
                         continue
 
                     try:
