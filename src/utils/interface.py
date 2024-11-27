@@ -95,7 +95,7 @@ class Interface:
         channel_width = 18
         remaining_width = self.terminal_width - (index_width + time_width + channel_width)
         title_width = int(remaining_width * 0.9)
-
+        separator = "-" * (index_width + 1) + "+" + "-" * (title_width + 2) + "+" + "-" * (channel_width + 2) + "+" + "-" * (time_width)
         header = (
             f"{Fore.CYAN}{Style.BRIGHT}{'#'.ljust(index_width)} │ "
             f"{'Title'.ljust(title_width)} │ "
@@ -106,7 +106,9 @@ class Interface:
         sleep(2)
         os.system("cls" if os.name == "nt" else "clear")
         self.draw_logo()
+        print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
         print(header)
+        print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
 
         for idx, video in enumerate(videos):
             title = video["title"]
@@ -148,6 +150,8 @@ class Interface:
                 f"{channel_name.ljust(channel_width)} {Fore.CYAN}│{color} "
                 f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
             )
+        
+        print(Fore.CYAN + separator + Style.RESET_ALL)
 
         choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
         if choice.isdigit() and 1 <= int(choice) <= len(videos):
@@ -209,10 +213,17 @@ class Interface:
                 channel_ids = self.manager.channels
                 channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
 
-                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel Name'.ljust(30)} │ {'Channel ID'}{Style.RESET_ALL}")
+                index_width = 2
+                name_width = 30
+                id_width = 26
+                separator = "-" * (index_width + 1) + "+" + "-" * (name_width + 2) + "+" + "-" * (id_width)
+                print(Fore.CYAN + separator)
+                print(f"{Fore.CYAN}{'#'.center(index_width)} │ {'Channel Name'.ljust(name_width)} │ {'Channel ID'}{Style.RESET_ALL}")
+                print(Fore.CYAN + separator)
                 for idx, channel_id in enumerate(channel_ids, 1):
                     channel_name = channel_map.get(channel_id, "Unknown")
-                    print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+                    print(f"{str(idx).center(index_width)} {Fore.CYAN}│{Fore.WHITE} {channel_name.ljust(name_width)} {Fore.CYAN}│{Fore.WHITE} {channel_id}")
+                print(Fore.CYAN + separator)
 
                 input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
 
@@ -225,11 +236,13 @@ class Interface:
                     self.draw_logo()
                     channel_ids = self.manager.channels
                     channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
-
-                    print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel Name'.ljust(30)} │ {'Channel ID'}{Style.RESET_ALL}")
+                    print(Fore.CYAN + separator)
+                    print(f"{Fore.CYAN}{'#'.center(index_width)} │ {'Channel Name'.ljust(name_width)} │ {'Channel ID'}{Style.RESET_ALL}")
+                    print(Fore.CYAN + separator)
                     for idx, channel_id in enumerate(channel_ids, 1):
                         channel_name = channel_map.get(channel_id, "Unknown")
-                        print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+                        print(f"{str(idx).center(2)} {Fore.CYAN}│{Fore.WHITE} {channel_name.ljust(30)} {Fore.CYAN}│{Fore.WHITE} {channel_id}")
+                    print(Fore.CYAN + separator)
                         
                     print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel.")
 
