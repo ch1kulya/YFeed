@@ -163,7 +163,7 @@ class Interface:
         # Display channels menu
         while True:
             self.draw_logo()
-            
+
             options = [
                 ("1", "Add Channel", "- Add a new YouTube channel to follow"),
                 ("2", "View Channels", "- List all subscribed channels"),
@@ -180,7 +180,7 @@ class Interface:
                 if not self.manager.config.get('api_key'):
                     self.show_message("Please set YouTube API key in settings first!", Fore.RED)
                     continue
-                    
+
                 link = self.input_prompt(f"{Fore.WHITE}\nEnter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
                 try:
                     channel_id = self.manager.channel_extractor.get_channel_id(link)
@@ -195,16 +195,19 @@ class Interface:
 
             elif choice == "2":
                 self.draw_logo()
-                
+
                 if not self.manager.channels:
                     self.show_message("No channels added yet!", Fore.YELLOW)
                     continue
 
-                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel ID'}{Style.RESET_ALL}")
-                
-                for idx, channel_id in enumerate(self.manager.channels, 1):
-                    print(f"{str(idx).center(2)} │ {channel_id}")
-                
+                channel_ids = self.manager.channels
+                channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
+
+                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel Name'.ljust(30)} │ {'Channel ID'}{Style.RESET_ALL}")
+                for idx, channel_id in enumerate(channel_ids, 1):
+                    channel_name = channel_map.get(channel_id, "Unknown")
+                    print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+
                 input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
 
             elif choice == "3":
@@ -213,14 +216,16 @@ class Interface:
                     continue
 
                 self.draw_logo()
-                
-                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel ID'}{Style.RESET_ALL}")
-                
-                for idx, channel_id in enumerate(self.manager.channels, 1):
-                    print(f"{str(idx).center(2)} │ {channel_id}")
-                
+                channel_ids = self.manager.channels
+                channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
+
+                print(f"{Fore.CYAN}{'#'.center(2)} │ {'Channel Name'.ljust(30)} │ {'Channel ID'}{Style.RESET_ALL}")
+                for idx, channel_id in enumerate(channel_ids, 1):
+                    channel_name = channel_map.get(channel_id, "Unknown")
+                    print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+
                 choice = self.input_prompt(f"\n{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} to remove or press {Fore.YELLOW}Enter{Fore.WHITE} to cancel")
-                
+
                 if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                     removed = self.manager.channels.pop(int(choice) - 1)
                     self.manager.save_channels()
