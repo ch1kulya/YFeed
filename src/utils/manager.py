@@ -3,7 +3,7 @@ import json
 import feedparser
 import re
 from time import time
-from colorama import Fore, Style, Cursor
+from colorama import Fore, Style
 from datetime import datetime
 from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
@@ -40,16 +40,6 @@ class YouTubeFeedManager:
         os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
         with open(CONFIG_FILE, "w") as f:
             json.dump(self.config, f)
-            
-    def load_cache(self):
-        if os.path.exists(CACHE_FILE):
-            with open(CACHE_FILE, "r") as cache_file:
-                return json.load(cache_file)
-        return {}
-
-    def save_cache(self, cache_data):
-        with open(CACHE_FILE, "w") as cache_file:
-            json.dump(cache_data, cache_file)
 
     @staticmethod
     def load_channels() -> List[str]:
@@ -131,7 +121,7 @@ class YouTubeFeedManager:
     def fetch_videos(self, channel_id: str) -> List[Dict]:
         try:
             # Load existing cache
-            video_cache = self.load_cache()
+            video_cache = self.channel_extractor.load_cache(CACHE_FILE)
 
             # Fetch the feed data from the channel
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
@@ -187,7 +177,7 @@ class YouTubeFeedManager:
                     need_api_request = True
 
             if not need_api_request:
-                print(Fore.GREEN + f"Videos from {channel_id} fetched!")
+                print(f"Videos from {Fore.YELLOW}{self.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}{Fore.WHITE} fetched! {Fore.GREEN}✓{Style.RESET_ALL}")
                 return cached_videos
 
             # Fetch details for uncached videos
@@ -222,14 +212,14 @@ class YouTubeFeedManager:
                         live_broadcast_content = item.get("liveBroadcastContent")
                         
                         # Cache the video details
-                        cache_data = self.load_cache()
+                        cache_data = self.channel_extractor.load_cache(CACHE_FILE)
                         if video_id not in cache_data:
                             video_cache[video_id] = {
                                 'duration_seconds': total_seconds,
                                 'live_broadcast_content': live_broadcast_content,
                                 'published': entry.published
                             }
-                        self.save_cache(cache_data)                        
+                        self.channel_extractor.save_cache(cache_data, CACHE_FILE)                        
                     
                         if live_broadcast_content in ["live", "upcoming"]:
                             continue  # Skip streams and upcoming broadcasts
@@ -253,7 +243,7 @@ class YouTubeFeedManager:
                         })
 
                     # Save updated cache
-                    self.save_cache(video_cache)
+                    self.channel_extractor.save_cache(video_cache, CACHE_FILE)
                     print(Fore.GREEN + f"Videos from {channel_id} fetched!")
 
                     return cached_videos

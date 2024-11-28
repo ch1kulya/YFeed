@@ -1,11 +1,24 @@
+import os
+import json
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from utils.settings import NAMES_FILE
 
 class YouTubeChannelExtractor:
     def __init__(self, api_key: str):
         # Initialize YouTube API client
         self.youtube = build('youtube', 'v3', developerKey=api_key)
-        self.channel_name_cache = {}  # Cache to store channel names
+        self.channel_name_cache = self.load_cache(NAMES_FILE)  # Cache to store channel names
+        
+    def load_cache(self, file):
+        if os.path.exists(file):
+            with open(file, "r") as cache_file:
+                return json.load(cache_file)
+        return {}
+
+    def save_cache(self, cache_data, file):
+        with open(file, "w") as cache_file:
+            json.dump(cache_data, cache_file)
 
     def get_channel_id(self, link: str) -> str:
         # Get channel ID from YouTube URL
@@ -105,5 +118,7 @@ class YouTubeChannelExtractor:
             for channel_id in remaining_ids:
                 cached_names[channel_id] = "Unknown"
                 self.channel_name_cache[channel_id] = "Unknown"
+                
+        self.save_cache(self.channel_name_cache, NAMES_FILE)
 
         return cached_names
