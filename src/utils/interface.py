@@ -37,10 +37,11 @@ class Interface:
             return f"{int(hours)}h ago"
         return f"{int(hours / 24)}d ago"
 
-    def draw_logo(self) -> None:
+    def draw_logo(self, text) -> None:
         # Draw application logo
         os.system("cls" if os.name == "nt" else "clear")
-        logo = pyfiglet.figlet_format("YFeed", font='slant', width=self.terminal_width)
+        logo_text = "YFeed " + text
+        logo = pyfiglet.figlet_format(logo_text, font='slant', width=self.terminal_width)
         gradient_logo = self.gradient_color(
             logo,
             (255, 255, 0),  # Yellow
@@ -62,7 +63,7 @@ class Interface:
 
     def main_menu(self) -> str:
         # Display main menu
-        self.draw_logo()
+        self.draw_logo("Main Menu")
         options = [
             ("1", "Videos", "- Browse latest videos from your subscriptions"),
             ("2", "Channels", "- Manage your channel subscriptions"),
@@ -77,7 +78,7 @@ class Interface:
 
     def videos_menu(self) -> None:
         # Display videos list
-        self.draw_logo()
+        self.draw_logo("Video List")
         videos = []
         fetching_start_time = time()
         print(Fore.GREEN + f"Fetching videos from {len(self.manager.channels)} channels!")
@@ -111,7 +112,7 @@ class Interface:
         sleep(2)
         while True:
             os.system("cls" if os.name == "nt" else "clear")
-            self.draw_logo()
+            self.draw_logo("Video List")
             print(header)
             print(separator)
 
@@ -174,7 +175,7 @@ class Interface:
     def channels_menu(self) -> None:
         # Display channels menu
         while True:
-            self.draw_logo()
+            self.draw_logo("Channels")
             index_width = 2
             name_width = 30
             id_width = 26
@@ -216,7 +217,7 @@ class Interface:
                         self.show_message(f"Error: {str(e)}", Fore.RED)
 
             elif choice == "2":
-                self.draw_logo()
+                self.draw_logo("Channels")
 
                 if not self.manager.channels:
                     self.show_message("No channels added yet!", Fore.YELLOW)
@@ -238,7 +239,7 @@ class Interface:
                     continue
 
                 while True:
-                    self.draw_logo()
+                    self.draw_logo("Channels")
                     channel_ids = self.manager.channels
                     channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
                     print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
@@ -275,7 +276,7 @@ class Interface:
     def settings_menu(self) -> None:
         # Display settings menu
         while True:
-            self.draw_logo()
+            self.draw_logo("Settings")
             options = [
                 ("1", "Days Filter", f"- Current: {self.manager.config['days_filter']}"),
                 ("2", "Minimum Video Length", f"- Current: {self.manager.config['min_video_length']} minutes"),
