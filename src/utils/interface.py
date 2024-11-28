@@ -53,7 +53,7 @@ class Interface:
 
     def input_prompt(self, prompt: str) -> str:
         # Input prompt
-        return input(f"{Fore.CYAN}{prompt}: {Style.RESET_ALL}")
+        return input(f"{prompt}: {Style.RESET_ALL}")
 
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
         # Display message
@@ -73,7 +73,7 @@ class Interface:
         for num, title, desc in options:
             print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
 
-        return self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
+        return self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
 
     def videos_menu(self) -> None:
         # Display videos list
@@ -98,11 +98,11 @@ class Interface:
         channel_width = 18
         remaining_width = self.terminal_width - (index_width + time_width + channel_width)
         title_width = int(remaining_width * 0.9)
-        separator = "-" * (index_width + 1) + "+" + "-" * (title_width + 2) + "+" + "-" * (channel_width + 2) + "+" + "-" * (time_width)
+        separator = "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
         header = (
-            f"{Fore.CYAN}{Style.BRIGHT}{'#'.ljust(index_width)} │ "
-            f"{'Title'.ljust(title_width)} │ "
-            f"{'Channel'.ljust(channel_width)} │ "
+            f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Title'.ljust(title_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
             f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
         )
         print(Fore.GREEN + Style.BRIGHT + "All videos fetched!")
@@ -112,9 +112,8 @@ class Interface:
         while True:
             os.system("cls" if os.name == "nt" else "clear")
             self.draw_logo()
-            print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
             print(header)
-            print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
+            print(separator)
 
             for idx, video in enumerate(videos):
                 title = video["title"]
@@ -151,13 +150,11 @@ class Interface:
                     color_time = Fore.WHITE
 
                 print(
-                    f"{color}{str(idx + 1).rjust(index_width)} {Fore.CYAN}│{color} "
-                    f"{title.ljust(title_width)} {Fore.CYAN}│{color} "
-                    f"{channel_name.ljust(channel_width)} {Fore.CYAN}│{color} "
+                    f"{str(idx + 1).rjust(index_width)} {Fore.WHITE}│{color} "
+                    f"{title.ljust(title_width)} {Fore.WHITE}│{color} "
+                    f"{channel_name.ljust(channel_width)} {Fore.WHITE}│{color} "
                     f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
                 )
-            
-            print(Fore.CYAN + separator + Style.RESET_ALL)
 
             choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
             if not choice.strip():
@@ -181,7 +178,7 @@ class Interface:
             index_width = 2
             name_width = 30
             id_width = 26
-            separator = "-" * (index_width + 1) + "+" + "-" * (name_width + 2) + "+" + "-" * (id_width)
+            separator = "═" * (index_width + 1) + "╪" + "═" * (name_width + 2) + "╪" + "═" * (id_width)
 
             options = [
                 ("1", "Add Channel", "- Add a new YouTube channel to follow"),
@@ -193,7 +190,7 @@ class Interface:
             for num, title, desc in options:
                 print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
 
-            choice = self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
+            choice = self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
 
             if choice == "1":
                 if not self.manager.config.get('api_key'):
@@ -227,13 +224,11 @@ class Interface:
 
                 channel_ids = self.manager.channels
                 channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
-                print(Fore.CYAN + separator)
-                print(f"{Fore.CYAN}{'#'.center(index_width)} │ {'Channel Name'.ljust(name_width)} │ {'Channel ID'}{Style.RESET_ALL}")
-                print(Fore.CYAN + separator)
+                print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
+                print(separator)
                 for idx, channel_id in enumerate(channel_ids, 1):
                     channel_name = channel_map.get(channel_id, "Unknown")
-                    print(f"{str(idx).center(index_width)} {Fore.CYAN}│{Fore.WHITE} {channel_name.ljust(name_width)} {Fore.CYAN}│{Fore.WHITE} {channel_id}")
-                print(Fore.CYAN + separator)
+                    print(f"{str(idx).center(index_width)} │ {channel_name.ljust(name_width)} │ {channel_id}")
 
                 input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
 
@@ -246,18 +241,16 @@ class Interface:
                     self.draw_logo()
                     channel_ids = self.manager.channels
                     channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
-                    print(Fore.CYAN + separator)
-                    print(f"{Fore.CYAN}{'#'.center(index_width)} │ {'Channel Name'.ljust(name_width)} │ {'Channel ID'}{Style.RESET_ALL}")
-                    print(Fore.CYAN + separator)
+                    print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
+                    print(separator)
                     for idx, channel_id in enumerate(channel_ids, 1):
                         channel_name = channel_map.get(channel_id, "Unknown")
-                        print(f"{str(idx).center(2)} {Fore.CYAN}│{Fore.WHITE} {channel_name.ljust(30)} {Fore.CYAN}│{Fore.WHITE} {channel_id}")
-                    print(Fore.CYAN + separator)
+                        print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
                         
-                    print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel.")
+                    print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel or", end=" ")
 
                     choice = self.input_prompt(
-                        f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} to remove"
+                        f"{Fore.WHITE}enter {Fore.YELLOW}number{Fore.WHITE} to remove"
                     )
 
                     if not choice.strip():
@@ -292,7 +285,7 @@ class Interface:
 
             for num, title, desc in options:
                 print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
-            choice = self.input_prompt(f"\nChoose an {Style.BRIGHT}option{Style.NORMAL}")
+            choice = self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
 
             if choice == "1":
                 days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days")
