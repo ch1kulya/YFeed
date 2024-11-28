@@ -12,7 +12,7 @@ def main():
     # Main application entry point
     manager = YouTubeFeedManager()
     interface = Interface(manager)
-    greeting = f"Good {['Morning', 'Afternoon', 'Evening', 'Night'][(datetime.datetime.now().hour // 6)]}!"
+    greeting = f"Good {['Night', 'Morning', 'Afternoon', 'Evening'][(datetime.datetime.now().hour // 6)]}!"
     greeting_art = pyfiglet.figlet_format(greeting, font='slant', width=interface.terminal_width)
     gradient_art = interface.gradient_color(
         greeting_art,
