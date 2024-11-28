@@ -31,5 +31,6 @@ python src/main.py
 - **`data/settings.json`**: Stores user-configurable settings.
 - **`data/channels.yfe`**: Stores subscribed channel IDs.
 - **`data/watched.yfe`**: Stores watched video IDs.
+- **`data/cache.json`**: Stores cached video data.
 
 #### Contributing is encouraged 🤗
