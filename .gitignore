@@ -6,3 +6,4 @@ main.build/
 demo/
 *.webm
 *.part
+.venv/
