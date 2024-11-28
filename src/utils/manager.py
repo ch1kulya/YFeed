@@ -105,17 +105,23 @@ class YouTubeFeedManager:
         return days * 86400 + hours * 3600 + minutes * 60 + seconds
     
     async def fetch_feed(self, url: str) -> dict:
-        async with aiohttp.ClientSession() as session:
+        max_retries = 3
+        timeout = 2
+        
+        for attempt in range(max_retries):
             try:
-                async with session.get(url, timeout=10) as response:
-                    response.raise_for_status()
-                    data = await response.read()
-                    return feedparser.parse(data)
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=timeout) as response:
+                        response.raise_for_status()
+                        data = await response.read()
+                        return feedparser.parse(data)
+            except asyncio.TimeoutError:
+                print(Fore.YELLOW + f"Attempt {attempt + 1} timed out. Retrying...")
+                if attempt == max_retries - 1:
+                    print(Fore.RED + "Feed fetch timed out.")
+                    return feedparser.parse('')
             except ClientError as e:
                 print(Fore.RED + f"HTTP error during feed fetch: {e}")
-                return feedparser.parse('')
-            except asyncio.TimeoutError:
-                print(Fore.RED + "Feed fetch timed out.")
                 return feedparser.parse('')
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
