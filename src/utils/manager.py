@@ -14,6 +14,9 @@ import vlc
 from tqdm import tqdm
 from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE
 from utils.extractor import YouTubeChannelExtractor
+import asyncio
+import aiohttp
+from aiohttp import ClientError
 
 class QuietLogger:
     def debug(self, msg):
@@ -126,6 +129,20 @@ class YouTubeFeedManager:
         minutes = int(match.group(2)) if match.group(2) else 0
         seconds = int(match.group(3)) if match.group(3) else 0
         return days * 86400 + hours * 3600 + minutes * 60 + seconds
+    
+    async def fetch_feed(self, url: str) -> dict:
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(url, timeout=10) as response:
+                    response.raise_for_status()
+                    data = await response.read()
+                    return feedparser.parse(data)
+            except ClientError as e:
+                print(Fore.RED + f"HTTP error during feed fetch: {e}")
+                return {"entries": []}
+            except asyncio.TimeoutError:
+                print(Fore.RED + "Feed fetch timed out.")
+                return {"entries": []}
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
         try:
@@ -133,9 +150,9 @@ class YouTubeFeedManager:
             video_cache = self.load_cache()
 
             # Fetch the feed data from the channel
-            feed_start_time = time()
             url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            feed = feedparser.parse(url)
+            feed_start_time = time()
+            feed = asyncio.run(self.fetch_feed(url))
             feed_time = (time() - feed_start_time) * 1000
             print(f"Feed fetching time: {Fore.LIGHTRED_EX if feed_time > 750 else Fore.LIGHTGREEN_EX}{int(feed_time)}{Style.RESET_ALL} ms")
 

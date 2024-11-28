@@ -1,6 +1,6 @@
 import os
 import pyfiglet
-from time import sleep
+from time import sleep, time
 from datetime import datetime, timedelta
 from colorama import Fore, Style
 from utils.manager import YouTubeFeedManager
@@ -77,6 +77,8 @@ class Interface:
         # Display videos list
         self.draw_logo()
         videos = []
+        fetching_start_time = time()
+        print(Fore.GREEN + f"Fetching videos from {len(self.manager.channels)} channels!")
         
         for channel_id in self.manager.channels:
             videos.extend(self.manager.fetch_videos(channel_id))
@@ -103,6 +105,8 @@ class Interface:
             f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
         )
         print(Fore.GREEN + Style.BRIGHT + "All videos fetched!")
+        fetching_time = (time() - fetching_start_time) * 1000
+        print(f"Total fetching time: {Fore.LIGHTRED_EX if fetching_time > 10000 else Fore.LIGHTGREEN_EX}{int(fetching_time)}{Style.RESET_ALL} ms")
         sleep(2)
         os.system("cls" if os.name == "nt" else "clear")
         self.draw_logo()
