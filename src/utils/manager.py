@@ -139,10 +139,10 @@ class YouTubeFeedManager:
                     return feedparser.parse(data)
             except ClientError as e:
                 print(Fore.RED + f"HTTP error during feed fetch: {e}")
-                return {"entries": []}
+                return feedparser.parse('')
             except asyncio.TimeoutError:
                 print(Fore.RED + "Feed fetch timed out.")
-                return {"entries": []}
+                return feedparser.parse('')
 
     def fetch_videos(self, channel_id: str) -> List[Dict]:
         try:
@@ -203,6 +203,7 @@ class YouTubeFeedManager:
                     need_api_request = True
 
             if not need_api_request:
+                print(Fore.GREEN + f"Videos from {channel_id} fetched!")
                 return cached_videos
 
             # Fetch details for uncached videos
@@ -269,6 +270,7 @@ class YouTubeFeedManager:
 
                     # Save updated cache
                     self.save_cache(video_cache)
+                    print(Fore.GREEN + f"Videos from {channel_id} fetched!")
 
                     return cached_videos
 
