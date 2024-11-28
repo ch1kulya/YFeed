@@ -4,18 +4,22 @@ is a cli python application that fetches recent video data using YouTube Data AP
 
 ### Installation
 
+> [!WARNING]
+> Ensure you have **Python**, **VLC** and **ffmpeg** installed. If you are using Windows, **wt** is also recommended.
+
+> [!TIP]
+> You can use `run.bat` and `update.bat` to automate this process.
+
 #### I. Setup
 1. Clone the repository
-2. Ensure you have Python, VLC and ffmpeg installed, and then install the required libraries:
+2. Install the required libraries:
 ```
 pip install -r requirements.txt
 ```
-3. Run Yfeed:
+1. Run Yfeed:
 ```
 python src/main.py
 ```
-> [!TIP]
-> You can use `run.bat` and `update.bat` to automate this process.
 
 #### II. Obtain YouTube API Key
 1. Visit the [**Google Cloud Console**](https://console.cloud.google.com/).

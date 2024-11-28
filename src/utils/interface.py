@@ -1,10 +1,12 @@
 import os
+import shutil
 import pyfiglet
 from time import sleep, time
 from datetime import datetime, timedelta
 from colorama import Fore, Style
 from utils.manager import YouTubeFeedManager
 from utils.extractor import YouTubeChannelExtractor
+import subprocess
 
 class Interface:
     def __init__(self, manager: YouTubeFeedManager):
@@ -107,64 +109,70 @@ class Interface:
         fetching_time = (time() - fetching_start_time) * 1000
         print(f"Total fetching time: {Fore.LIGHTRED_EX if fetching_time > 10000 else Fore.LIGHTGREEN_EX}{int(fetching_time)}{Style.RESET_ALL} ms")
         sleep(2)
-        os.system("cls" if os.name == "nt" else "clear")
-        self.draw_logo()
-        print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
-        print(header)
-        print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
-
-        for idx, video in enumerate(videos):
-            title = video["title"]
-            published = video["published"]
-            delta = datetime.now(published.tzinfo) - published
-            time_ago = self.format_time_ago(delta)
-
-            channel_name = video.get("author", "Unknown Channel")
-            if len(channel_name) > channel_width - 3:
-                channel_name = channel_name[:channel_width-3] + "..."
-            
-            cutoff_index = len(title)
-            for char in ["|", "[", "("]:
-                index = title.find(char)
-                if 0 <= index < cutoff_index:
-                    cutoff_index = index
-                    
-            title = title[:cutoff_index].strip()
-                    
-            if len(title) > title_width - 3:
-                title = title[:title_width-3] + "..."
-
-            if video["id"] in self.manager.watched:
-                color = Fore.LIGHTBLACK_EX
-                color_time = Fore.LIGHTBLACK_EX
-            elif delta.days == 0:
-                color = Fore.WHITE
-                color_time = Fore.LIGHTYELLOW_EX
-            elif delta.days == 1:
-                color = Fore.WHITE
-                color_time = Fore.LIGHTMAGENTA_EX
-            else:
-                color = Fore.WHITE
-                color_time = Fore.WHITE
-
-            print(
-                f"{color}{str(idx + 1).rjust(index_width)} {Fore.CYAN}│{color} "
-                f"{title.ljust(title_width)} {Fore.CYAN}│{color} "
-                f"{channel_name.ljust(channel_width)} {Fore.CYAN}│{color} "
-                f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
-            )
-        
-        print(Fore.CYAN + separator + Style.RESET_ALL)
-
-        choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
-        if choice.isdigit() and 1 <= int(choice) <= len(videos):
-            video = videos[int(choice) - 1]
-            self.manager.watched.add(video["id"])
-            self.manager.save_watched()
+        while True:
             os.system("cls" if os.name == "nt" else "clear")
             self.draw_logo()
-            manager = YouTubeFeedManager()
-            manager.watch_video(video["link"])
+            print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
+            print(header)
+            print(Fore.CYAN + Style.BRIGHT + separator + Style.RESET_ALL)
+
+            for idx, video in enumerate(videos):
+                title = video["title"]
+                published = video["published"]
+                delta = datetime.now(published.tzinfo) - published
+                time_ago = self.format_time_ago(delta)
+
+                channel_name = video.get("author", "Unknown Channel")
+                if len(channel_name) > channel_width - 3:
+                    channel_name = channel_name[:channel_width-3] + "..."
+                
+                cutoff_index = len(title)
+                for char in ["|", "[", "("]:
+                    index = title.find(char)
+                    if 0 <= index < cutoff_index:
+                        cutoff_index = index
+                        
+                title = title[:cutoff_index].strip()
+                        
+                if len(title) > title_width - 3:
+                    title = title[:title_width-3] + "..."
+
+                if video["id"] in self.manager.watched:
+                    color = Fore.LIGHTBLACK_EX
+                    color_time = Fore.LIGHTBLACK_EX
+                elif delta.days == 0:
+                    color = Fore.WHITE
+                    color_time = Fore.LIGHTYELLOW_EX
+                elif delta.days == 1:
+                    color = Fore.WHITE
+                    color_time = Fore.LIGHTMAGENTA_EX
+                else:
+                    color = Fore.WHITE
+                    color_time = Fore.WHITE
+
+                print(
+                    f"{color}{str(idx + 1).rjust(index_width)} {Fore.CYAN}│{color} "
+                    f"{title.ljust(title_width)} {Fore.CYAN}│{color} "
+                    f"{channel_name.ljust(channel_width)} {Fore.CYAN}│{color} "
+                    f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
+                )
+            
+            print(Fore.CYAN + separator + Style.RESET_ALL)
+
+            choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+            if not choice.strip():
+                break
+            if choice.isdigit() and 1 <= int(choice) <= len(videos):
+                video = videos[int(choice) - 1]
+                self.manager.watched.add(video["id"])
+                self.manager.save_watched()
+                if os.name == "nt":  # Windows
+                    if shutil.which("wt.exe"):
+                        subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{video["link"]}"', shell=True)
+                    else:
+                        subprocess.Popen(f'start cmd /C python src/instance.py "{video["link"]}"', shell=True)
+
+                #TODO Linux/Mac support
 
     def channels_menu(self) -> None:
         # Display channels menu
