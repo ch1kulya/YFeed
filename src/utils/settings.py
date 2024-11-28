@@ -4,3 +4,4 @@ WATCHED_FILE = "data/watched.yfe"
 CACHE_FILE = "data/cache.json"
 NAMES_FILE = "data/names.json"
 MAX_SECONDS = 18000
+TIMEOUT_SECONDS = 5

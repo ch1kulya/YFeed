@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from colorama import Fore, Style
 from utils.manager import YouTubeFeedManager
 from utils.extractor import YouTubeChannelExtractor
+from utils.settings import TIMEOUT_SECONDS
 import subprocess
 import feedparser
 import concurrent.futures
@@ -86,9 +87,18 @@ class Interface:
         print(Fore.GREEN + f"Fetching videos from {len(self.manager.channels)} channels!")
         
         def parse_feed(channel_id):
-            url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            feed = feedparser.parse(url)
-            return feed
+            start_time = time()
+            try:
+                url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+                feed = feedparser.parse(url)
+                elapsed_time = time() - start_time
+                if elapsed_time > TIMEOUT_SECONDS:
+                    print(f"{Fore.RED}Timeout: {Fore.WHITE}Parsing took too long. Check your internet connection.{Style.RESET_ALL}")
+                    return None
+                return feed
+            except Exception as e:
+                print(f"{Fore.RED}Error parsing{Fore.WHITE} {channel_id}: {Fore.RED}{e}{Style.RESET_ALL}")
+                return None
 
         def parse_feeds(channel_ids):
             with concurrent.futures.ThreadPoolExecutor() as executor:
