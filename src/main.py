@@ -23,7 +23,7 @@ def main():
     for line in gradient_art.split('\n'):
         print(" " * 3 + line)
     print("\n")
-    sleep(2)
+    sleep(1.5)
     os.system("cls" if os.name == "nt" else "clear")
 
     while True:

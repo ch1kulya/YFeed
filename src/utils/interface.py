@@ -63,7 +63,7 @@ class Interface:
 
     def main_menu(self) -> str:
         # Display main menu
-        self.draw_logo("Main Menu")
+        self.draw_logo("Home")
         options = [
             ("1", "Videos", "- Browse latest videos from your subscriptions"),
             ("2", "Channels", "- Manage your channel subscriptions"),
