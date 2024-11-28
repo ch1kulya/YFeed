@@ -1,6 +1,5 @@
 import os
 import json
-import feedparser
 import re
 from time import time
 from colorama import Fore, Style
@@ -9,9 +8,6 @@ from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
 from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE
 from utils.extractor import YouTubeChannelExtractor
-import asyncio
-import aiohttp
-from aiohttp import ClientError
 
 class YouTubeFeedManager:
     def __init__(self):
@@ -103,38 +99,11 @@ class YouTubeFeedManager:
         minutes = int(match.group(2)) if match.group(2) else 0
         seconds = int(match.group(3)) if match.group(3) else 0
         return days * 86400 + hours * 3600 + minutes * 60 + seconds
-    
-    async def fetch_feed(self, url: str) -> dict:
-        max_retries = 3
-        timeout = 2
-        
-        for attempt in range(max_retries):
-            try:
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=timeout) as response:
-                        response.raise_for_status()
-                        data = await response.read()
-                        return feedparser.parse(data)
-            except asyncio.TimeoutError:
-                print(Fore.YELLOW + f"Attempt {attempt + 1} timed out. Retrying...")
-                if attempt == max_retries - 1:
-                    print(Fore.RED + "Feed fetch timed out.")
-                    return feedparser.parse('')
-            except ClientError as e:
-                print(Fore.RED + f"HTTP error during feed fetch: {e}")
-                return feedparser.parse('')
 
-    def fetch_videos(self, channel_id: str) -> List[Dict]:
+    def fetch_videos(self, channel_id: str, feed) -> List[Dict]:
         try:
             # Load existing cache
             video_cache = self.channel_extractor.load_cache(CACHE_FILE)
-
-            # Fetch the feed data from the channel
-            url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            feed_start_time = time()
-            feed = asyncio.run(self.fetch_feed(url))
-            feed_time = (time() - feed_start_time) * 1000
-            print(f"Feed fetching time: {Fore.LIGHTRED_EX if feed_time > 750 else Fore.LIGHTGREEN_EX}{int(feed_time)}{Style.RESET_ALL} ms")
 
             if not feed.entries:
                 print(Fore.RED + "No entries found in the feed.")
@@ -183,7 +152,6 @@ class YouTubeFeedManager:
                     need_api_request = True
 
             if not need_api_request:
-                print(f"Videos from {Fore.YELLOW}{self.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}{Fore.WHITE} fetched! {Fore.GREEN}✓{Style.RESET_ALL}")
                 return cached_videos
 
             # Fetch details for uncached videos

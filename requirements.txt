@@ -6,4 +6,3 @@ wcwidth
 yt-dlp
 python-vlc
 tqdm
-aiohttp

@@ -7,6 +7,8 @@ from colorama import Fore, Style
 from utils.manager import YouTubeFeedManager
 from utils.extractor import YouTubeChannelExtractor
 import subprocess
+import feedparser
+import concurrent.futures
 
 class Interface:
     def __init__(self, manager: YouTubeFeedManager):
@@ -83,9 +85,22 @@ class Interface:
         fetching_start_time = time()
         print(Fore.GREEN + f"Fetching videos from {len(self.manager.channels)} channels!")
         
-        for channel_id in self.manager.channels:
-            videos.extend(self.manager.fetch_videos(channel_id))
-        
+        def parse_feed(channel_id):
+            url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+            feed = feedparser.parse(url)
+            return feed
+
+        def parse_feeds(channel_ids):
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                results = list(executor.map(parse_feed, channel_ids))
+            return results
+
+        parsed_feeds = parse_feeds(self.manager.channels)
+
+        for i, channel_id in enumerate(self.manager.channels):
+            feed = parsed_feeds[i]
+            videos.extend(self.manager.fetch_videos(channel_id, feed))
+            
         if not videos:
             self.show_message("No videos found!", Fore.RED)
             return
@@ -109,7 +124,7 @@ class Interface:
         print(Fore.GREEN + Style.BRIGHT + "All videos fetched!")
         fetching_time = (time() - fetching_start_time) * 1000
         print(f"Total fetching time: {Fore.LIGHTRED_EX if fetching_time > 10000 else Fore.LIGHTGREEN_EX}{int(fetching_time)}{Style.RESET_ALL} ms")
-        sleep(2)
+        sleep(0.3)
         while True:
             os.system("cls" if os.name == "nt" else "clear")
             self.draw_logo("Video List")
