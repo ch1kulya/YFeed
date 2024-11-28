@@ -12,7 +12,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 
 #### I. Setup
 1. Clone the repository
-2. Install the required libraries:
+2. Install required libraries:
 ```
 pip install -r requirements.txt
 ```
