@@ -7,3 +7,4 @@ demo/
 *.webm
 *.part
 .venv/
+*.txt
