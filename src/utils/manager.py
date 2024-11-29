@@ -157,13 +157,10 @@ class YouTubeFeedManager:
             # Fetch details for uncached videos
             if video_ids_to_fetch:
                 try:
-                    api_start_time = time()
                     video_response = self.channel_extractor.youtube.videos().list(
                         part="contentDetails",
                         id=','.join(video_ids_to_fetch)
                     ).execute()
-                    api_time = (time() - api_start_time) * 1000
-                    print(f"API request time: {Fore.LIGHTRED_EX if api_time > 500 else Fore.LIGHTGREEN_EX}{int(api_time)}{Style.RESET_ALL} ms")
 
                     if "items" not in video_response or not video_response["items"]:
                         print(Fore.RED + "No video details found in the API response.")
@@ -217,7 +214,6 @@ class YouTubeFeedManager:
 
                     # Save updated cache
                     self.channel_extractor.save_cache(video_cache, CACHE_FILE)
-                    print(f"Videos from {Fore.YELLOW}{self.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}{Fore.WHITE} fetched with api! {Fore.GREEN}✓{Style.RESET_ALL}")
 
                     return cached_videos
 

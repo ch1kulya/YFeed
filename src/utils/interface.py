@@ -9,6 +9,7 @@ from utils.extractor import YouTubeChannelExtractor
 from utils.settings import TIMEOUT_SECONDS
 import subprocess
 import feedparser
+import requests
 import concurrent.futures
 
 class Interface:
@@ -84,32 +85,45 @@ class Interface:
         self.draw_logo("Video List")
         videos = []
         fetching_start_time = time()
-        print(Fore.GREEN + f"Fetching videos from {len(self.manager.channels)} channels!")
+        print(f"Fetching videos from {Fore.YELLOW}{len(self.manager.channels)}{Fore.WHITE} channels!{Style.RESET_ALL}")
         
         def parse_feed(channel_id):
-            start_time = time()
-            try:
-                url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-                feed = feedparser.parse(url)
-                elapsed_time = time() - start_time
-                if elapsed_time > TIMEOUT_SECONDS:
-                    print(f"{Fore.RED}Timeout: {Fore.WHITE}Parsing took too long. Check your internet connection.{Style.RESET_ALL}")
+            url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+            
+            for attempt in range(3):
+                try:
+                    response = requests.get(url, timeout=TIMEOUT_SECONDS)
+                    feed = feedparser.parse(response.content)
+                    return feed
+                except requests.exceptions.Timeout:
+                    print(f"{Fore.RED}Timeout{Fore.WHITE} on attempt {Fore.RED}{attempt + 1}{Style.RESET_ALL}")
+                    print("Retrying in 3...")
+                    sleep(1)
+                    print("Retrying in 2...")
+                    sleep(1)
+                    print("Retrying in 1...")
+                    sleep(1)
+                    if attempt == 2:
+                        return None
+                except Exception as e:
+                    print(f"{Fore.RED}Error parsing {channel_id}: {Fore.WHITE}{e}{Style.RESET_ALL}")
                     return None
-                return feed
-            except Exception as e:
-                print(f"{Fore.RED}Error parsing{Fore.WHITE} {channel_id}: {Fore.RED}{e}{Style.RESET_ALL}")
-                return None
 
         def parse_feeds(channel_ids):
-            with concurrent.futures.ThreadPoolExecutor() as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
                 results = list(executor.map(parse_feed, channel_ids))
             return results
 
+        print("Parsing...")
         parsed_feeds = parse_feeds(self.manager.channels)
+        print("Parsed successfully.")
+        print("Fetching...")
 
         for i, channel_id in enumerate(self.manager.channels):
             feed = parsed_feeds[i]
             videos.extend(self.manager.fetch_videos(channel_id, feed))
+            
+        print("Fetched successfully.")
             
         if not videos:
             self.show_message("No videos found!", Fore.RED)
@@ -120,8 +134,8 @@ class Interface:
         videos = [video for video in videos if video["published"] > cutoff_date]
 
         index_width = len(str(len(videos)))
-        time_width = 12
-        channel_width = 18
+        time_width = 10
+        channel_width = 25
         remaining_width = self.terminal_width - (index_width + time_width + channel_width)
         title_width = int(remaining_width * 0.9)
         separator = "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
