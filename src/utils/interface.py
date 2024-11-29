@@ -171,7 +171,7 @@ class Interface:
                     if 0 <= index < cutoff_index:
                         cutoff_index = index
                         
-                title = title[:cutoff_index].strip()
+                title = " ".join(title[:cutoff_index].split())
                         
                 if len(title) > title_width - 3:
                     title = title[:title_width-3] + "..."
