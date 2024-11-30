@@ -5,7 +5,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 ### Installation
 
 > [!WARNING]
-> Ensure you have **Python**, **VLC** and **ffmpeg** installed. If you are using Windows, **wt** is also recommended.
+> Ensure you have **Python**, **fmmpeg** and **mpv** installed. If you are using Windows, **wt** is also recommended.
 
 > [!TIP]
 > You can use `run.bat` and `update.bat` to automate this process.

@@ -1,4 +1,5 @@
 import os
+import glob
 import pyfiglet
 import datetime
 from time import sleep
@@ -36,6 +37,13 @@ def main():
             interface.settings_menu()
         elif choice == "4":
             os.system("cls" if os.name == "nt" else "clear")
+            webm_files = glob.glob(os.path.join(".", "*.webm"))
+            for file in webm_files:
+                try:
+                    os.remove(file)
+                    print(f"Deleted: {file}")
+                except Exception as e:
+                    print(f"Error deleting {file}: {e}")
             goodbye_art = pyfiglet.figlet_format("Goodbye!", font='slant', width=interface.terminal_width)
             gradient_art = interface.gradient_color(
                 goodbye_art,

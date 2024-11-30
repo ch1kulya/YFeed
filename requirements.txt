@@ -4,5 +4,3 @@ google-api-python-client
 pyfiglet
 wcwidth
 yt-dlp
-python-vlc
-tqdm

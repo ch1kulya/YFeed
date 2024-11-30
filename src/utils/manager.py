@@ -1,8 +1,7 @@
 import os
 import json
 import re
-from time import time
-from colorama import Fore, Style
+from colorama import Fore
 from datetime import datetime
 from typing import Dict, List, Set
 from googleapiclient.errors import HttpError

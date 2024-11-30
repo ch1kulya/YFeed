@@ -23,7 +23,6 @@ IF %ERRORLEVEL% NEQ 0 (
     echo pip is available.
 )
 
-
 REM Check for FFmpeg
 echo Checking for FFmpeg installation...
 ffmpeg -version >nul 2>&1
@@ -37,18 +36,17 @@ IF %ERRORLEVEL% NEQ 0 (
     echo ffmpeg is installed.
 )
 
-REM Check for VLC installation
-echo Checking for VLC installation...
-IF EXIST "C:\Program Files\VideoLAN\VLC\vlc.exe" (
-    echo VLC is installed.
-) ELSE IF EXIST "C:\Program Files (x86)\VideoLAN\VLC\vlc.exe" (
-    echo VLC is installed.
-) ELSE (
-    echo VLC is not installed.
-    echo Please download and install VLC from the following link:
-    echo https://www.videolan.org/vlc/
+REM Check for mpv player
+echo Checking for mpv installation and version...
+mpv --version >nul 2>&1
+IF %ERRORLEVEL% NEQ 0 (
+    echo mpv is not installed.
+    echo Please download and install mpv from the following link:
+    echo https://sourceforge.net/projects/mpv-player-windows/files/release/mpv-0.39.0-x86_64.7z
     pause
     exit /b
+) ELSE (
+    echo mpv is installed.
 )
 
 REM Check for required dependencies
@@ -59,7 +57,7 @@ IF %ERRORLEVEL% NEQ 0 (
     pause
     exit /b
 ) ELSE (
-    echo dependencies is installed.
+    echo dependencies are installed.
 )
 
 REM Run the main.py script
