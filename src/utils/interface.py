@@ -166,7 +166,7 @@ class Interface:
                     channel_name = channel_name[:channel_width-3] + "..."
                 
                 cutoff_index = len(title)
-                for char in ["|", "[", "(", "."]:
+                for char in ["|", "[", "(", ".", "@"]:
                     index = title.find(char)
                     if 0 <= index < cutoff_index:
                         cutoff_index = index
