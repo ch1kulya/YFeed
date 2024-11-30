@@ -16,7 +16,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 ```
 pip install -r requirements.txt
 ```
-1. Run Yfeed:
+1. Run YFeed:
 ```
 python src/main.py
 ```
