@@ -29,6 +29,7 @@ python src/main.py
 
 ### Data Structure
 - **`data/settings.json`**: Stores user-configurable settings.
+- **`data/names.json`**: Stores subscribed channel names.
 - **`data/channels.yfe`**: Stores subscribed channel IDs.
 - **`data/watched.yfe`**: Stores watched video IDs.
 - **`data/cache.json`**: Stores cached video data.
