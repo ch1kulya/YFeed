@@ -29,7 +29,7 @@ ffmpeg -version >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     echo FFmpeg is not installed.
     echo Please download and install FFmpeg from the following link:
-    echo https://ffmpeg.org/download.html
+    echo https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z
     pause
     exit /b
 ) ELSE (
