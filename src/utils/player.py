@@ -25,7 +25,12 @@ class MediaPlayer:
             print(" " * 3 + line)
         print("\n")
 
-        temp_file = 'video-' + url.split('v=')[1][:11] + '.webm'
+        if 'v=' in url:
+            temp_file = 'video-' + url.split('v=')[1][:11] + '.webm'
+        elif '/' in url:
+            temp_file = 'video-' + url.split('/')[-1] + '.webm'
+        else:
+            temp_file = 'video-invalid.webm'
 
         # yt-dlp options for downloading the best video+audio quality
         ydl_opts = {
