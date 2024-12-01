@@ -1,6 +1,6 @@
 ## YFeed
 is a cli python application that fetches recent video data using YouTube Data API and RSS feeds.
-![screenshot](https://github.com/user-attachments/assets/9959285b-6932-4480-aa5e-cfbc3c58c3db)
+![332shots_so](https://github.com/user-attachments/assets/d85341a3-6b2e-4cc0-b799-5a833b825046)
 
 ### Installation
 
