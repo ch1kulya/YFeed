@@ -121,6 +121,33 @@ class Interface:
             print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
 
         return self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
+    
+    def parse_feed(self, channel_id):
+        url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+        
+        for attempt in range(3):
+            try:
+                response = requests.get(url, timeout=TIMEOUT_SECONDS)
+                feed = feedparser.parse(response.content)
+                return feed
+            except requests.exceptions.Timeout:
+                print(f"{Fore.RED}Timeout{Fore.WHITE} on attempt {Fore.RED}{attempt + 1}{Style.RESET_ALL}")
+                print("Retrying in 3...")
+                sleep(1)
+                print("Retrying in 2...")
+                sleep(1)
+                print("Retrying in 1...")
+                sleep(1)
+                if attempt == 2:
+                    return None
+            except Exception as e:
+                print(f"{Fore.RED}Error parsing {channel_id}: {Fore.WHITE}{e}{Style.RESET_ALL}")
+                return None
+
+    def parse_feeds(self, channel_ids):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(self.parse_feed, channel_ids))
+        return results
 
     def videos_menu(self) -> None:
         # Display videos list
@@ -128,36 +155,8 @@ class Interface:
         videos = []
         fetching_start_time = time()
         print(f"Fetching videos from {Fore.YELLOW}{len(self.manager.channels)}{Fore.WHITE} channels!{Style.RESET_ALL}")
-        
-        def parse_feed(channel_id):
-            url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            
-            for attempt in range(3):
-                try:
-                    response = requests.get(url, timeout=TIMEOUT_SECONDS)
-                    feed = feedparser.parse(response.content)
-                    return feed
-                except requests.exceptions.Timeout:
-                    print(f"{Fore.RED}Timeout{Fore.WHITE} on attempt {Fore.RED}{attempt + 1}{Style.RESET_ALL}")
-                    print("Retrying in 3...")
-                    sleep(1)
-                    print("Retrying in 2...")
-                    sleep(1)
-                    print("Retrying in 1...")
-                    sleep(1)
-                    if attempt == 2:
-                        return None
-                except Exception as e:
-                    print(f"{Fore.RED}Error parsing {channel_id}: {Fore.WHITE}{e}{Style.RESET_ALL}")
-                    return None
-
-        def parse_feeds(channel_ids):
-            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-                results = list(executor.map(parse_feed, channel_ids))
-            return results
-
         print("Parsing...")
-        parsed_feeds = parse_feeds(self.manager.channels)
+        parsed_feeds = self.parse_feeds(self.manager.channels)
         print("Parsed successfully.")
         print("Fetching...")
 
