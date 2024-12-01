@@ -30,14 +30,11 @@ class YouTubeChannelExtractor:
         if "youtube.com/channel/" in link:
             channel_id = link.split("channel/")[-1].split("/")[0]
             if self._validate_channel_id(channel_id):
-                print(f'Your slug: {channel_id}')
                 return channel_id
         elif "/@" in link or "/user/" in link:
             username = link.split("/")[-1]
-            print(f'Your slug: {username}')
             return self._get_channel_id_from_username(username)
         elif not any(x in link for x in ["youtube.com", "youtu.be"]):
-            print(f'Your slug: {link}')
             return self._get_channel_id_from_username(link)
 
         raise ValueError("Invalid channel link format")

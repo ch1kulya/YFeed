@@ -1,4 +1,5 @@
 import os
+import glob
 import shutil
 import pyfiglet
 from time import sleep, time
@@ -17,6 +18,41 @@ class Interface:
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
         self.padding = 2
+        
+    def greet(self):
+        greeting = f"Good {['Night', 'Morning', 'Afternoon', 'Evening'][(datetime.now().hour // 6)]}!"
+        greeting_art = pyfiglet.figlet_format(greeting, font='slant', width=self.terminal_width)
+        gradient_art = self.gradient_color(
+            greeting_art,
+            (255, 200, 255),
+            (255, 99, 255)
+        )
+        print("\n")
+        for line in gradient_art.split('\n'):
+            print(" " * 3 + line)
+        print("\n")
+        sleep(1.5)
+        os.system("cls" if os.name == "nt" else "clear")
+        
+    def shut_down(self):
+        os.system("cls" if os.name == "nt" else "clear")
+        webm_files = glob.glob(os.path.join(".", "*.webm"))
+        for file in webm_files:
+            try:
+                os.remove(file)
+                print(f"Deleted: {file}")
+            except Exception as e:
+                print(f"Error deleting {file}: {e}")
+        goodbye_art = pyfiglet.figlet_format("Goodbye!", font='slant', width=self.terminal_width)
+        gradient_art = self.gradient_color(
+            goodbye_art,
+            (255, 255, 255),
+            (255, 69, 255)
+        )
+        print("\n")
+        for line in gradient_art.split('\n'):
+            print(" " * 3 + line)
+        print("\n")
 
     def gradient_color(self, text: str, start_color: tuple, end_color: tuple) -> str:
         # Create a gradient effect for text
