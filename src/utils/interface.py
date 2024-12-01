@@ -11,13 +11,13 @@ from utils.settings import TIMEOUT_SECONDS
 import subprocess
 import feedparser
 import requests
+import re
 import concurrent.futures
 
 class Interface:
     def __init__(self, manager: YouTubeFeedManager):
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
-        self.padding = 2
         
     def greet(self):
         greeting = f"Good {['Night', 'Morning', 'Afternoon', 'Evening'][(datetime.now().hour // 6)]}!"
@@ -29,10 +29,16 @@ class Interface:
         )
         print("\n")
         for line in gradient_art.split('\n'):
-            print(" " * 3 + line)
+            print(self.center_text(line))
         print("\n")
         sleep(1.5)
         os.system("cls" if os.name == "nt" else "clear")
+            
+    def center_text(self, text):
+        stripped_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
+        text_length = len(stripped_text)
+        padding = (self.terminal_width - text_length) // 2
+        return ' ' * max(padding, 0) + text
         
     def shut_down(self):
         os.system("cls" if os.name == "nt" else "clear")
@@ -51,7 +57,7 @@ class Interface:
         )
         print("\n")
         for line in gradient_art.split('\n'):
-            print(" " * 3 + line)
+            print(self.center_text(line))
         print("\n")
 
     def gradient_color(self, text: str, start_color: tuple, end_color: tuple) -> str:
@@ -89,7 +95,7 @@ class Interface:
         )
         print("\n")
         for line in gradient_logo.split('\n'):
-            print(" " * 3 + line)
+            print(self.center_text(line))
         print("\n")
 
     def input_prompt(self, prompt: str) -> str:
