@@ -196,25 +196,22 @@ class Interface:
         """
         url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
         
-        for attempt in range(3):
+        for attempt in range(2):
             try:
                 response = requests.get(url, timeout=TIMEOUT_SECONDS)
                 feed = feedparser.parse(response.content)
                 return feed
             except requests.exceptions.Timeout:
-                print(f"{Fore.RED}Timeout{Fore.WHITE} on attempt {Fore.RED}{attempt + 1}{Style.RESET_ALL}")
-                print("Retrying in 3...")
-                sleep(1)
-                print("Retrying in 2...")
-                sleep(1)
-                print("Retrying in 1...")
-                sleep(1)
-                if attempt == 2:
+                if attempt == 0:
+                    print(f"{Fore.RED}Timeout{Fore.WHITE} on first attempt for channel {self.manager.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}.{Style.RESET_ALL} Retrying...")
+                else:
+                    print(f"{Fore.RED}Timeout{Fore.WHITE} on second attempt for channel {self.manager.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}.{Style.RESET_ALL} Giving up.")
+                if attempt == 1:
                     return None
             except Exception as e:
                 print(f"{Fore.RED}Error parsing {channel_id}: {Fore.WHITE}{e}{Style.RESET_ALL}")
                 return None
-    
+
     def parse_feeds(self, channel_ids):
         """Fetch and parse YouTube feeds concurrently for a list of channel IDs.
 
