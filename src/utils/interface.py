@@ -111,10 +111,10 @@ class Interface:
         # Display main menu
         self.draw_logo("Home")
         options = [
-            ("1", "Videos", "- Browse latest videos from your subscriptions"),
-            ("2", "Channels", "- Manage your channel subscriptions"),
-            ("3", "Settings", "- Configure application settings"),
-            ("4", "Exit", "")
+            ("1", "Videos", "- Fetch latest videos"),
+            ("2", "Channels", "- Control subscriptions"),
+            ("3", "Settings", "- Manage configuration"),
+            ("4", "Exit", "- Terminate & Cleanup")
         ]
 
         for num, title, desc in options:
@@ -260,12 +260,14 @@ class Interface:
             index_width = 2
             name_width = 30
             id_width = 26
+            channel_ids = self.manager.channels
+            channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
             separator = "═" * (index_width + 1) + "╪" + "═" * (name_width + 2) + "╪" + "═" * (id_width)
 
             options = [
-                ("1", "Add Channel", "- Add a new YouTube channel to follow"),
-                ("2", "View Channels", "- List all subscribed channels"),
-                ("3", "Remove Channel", "- Unsubscribe from a channel"),
+                ("1", "Add Channel", "- Subscribe"),
+                ("2", "View Channels", f"- Current: {len(channel_ids)}"),
+                ("3", "Remove Channel", "- Unsubscribe"),
                 ("4", "Return", "")
             ]
 
@@ -304,8 +306,6 @@ class Interface:
                     self.show_message("No channels added yet!", Fore.YELLOW)
                     continue
 
-                channel_ids = self.manager.channels
-                channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
                 print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
                 print(separator)
                 for idx, channel_id in enumerate(channel_ids, 1):
@@ -321,8 +321,6 @@ class Interface:
 
                 while True:
                     self.draw_logo("Channels")
-                    channel_ids = self.manager.channels
-                    channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
                     print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
                     print(separator)
                     for idx, channel_id in enumerate(channel_ids, 1):
@@ -359,8 +357,8 @@ class Interface:
         while True:
             self.draw_logo("Settings")
             options = [
-                ("1", "Days Filter", f"- Current: {self.manager.config['days_filter']}"),
-                ("2", "Minimum Video Length", f"- Current: {self.manager.config['min_video_length']} minutes"),
+                ("1", "Days Filter", f"- Current: {self.manager.config['days_filter']} days"),
+                ("2", "Minimum Length", f"- Current: {self.manager.config['min_video_length']} minutes"),
                 ("3", "YouTube API Key", f"- Current: {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'}"),
                 ("4", "Return", "")
             ]
