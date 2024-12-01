@@ -9,7 +9,16 @@ from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS
 from utils.extractor import YouTubeChannelExtractor
 
 class YouTubeFeedManager:
+    """Manages YouTube feed operations, including loading configurations, channels,
+    watched videos, and fetching video data from YouTube channels."""
+
     def __init__(self):
+        """Initialize the YouTubeFeedManager instance.
+
+        This method loads the configuration, channels, and watched videos from their
+        respective files. It also initializes the YouTubeChannelExtractor if an API key
+        is provided in the configuration.
+        """
         # Initialize the feed manager
         self.config = self.load_config()
         self.channels = self.load_channels()
@@ -22,7 +31,13 @@ class YouTubeFeedManager:
 
     @staticmethod
     def load_config() -> Dict:
-        # Load configuration from file
+        """Load configuration settings from a JSON file.
+
+        If the configuration file does not exist, it returns default settings.
+
+        Returns:
+            Dict: A dictionary containing configuration settings.
+        """
         default_config = {"days_filter": 7, "api_key": "", "min_video_length": 2}
         if not os.path.exists(CONFIG_FILE):
             return default_config
@@ -31,42 +46,72 @@ class YouTubeFeedManager:
         return {**default_config, **config}
 
     def save_config(self) -> None:
-        # Save configuration to file
+        """Save the current configuration settings to a JSON file.
+
+        Creates the necessary directories if they do not exist.
+        """
         os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
         with open(CONFIG_FILE, "w") as f:
             json.dump(self.config, f)
 
     @staticmethod
     def load_channels() -> List[str]:
-        # Load channel list from file
+        """Load the list of subscribed YouTube channel IDs from a file.
+
+        If the channels file does not exist, it returns an empty list.
+
+        Returns:
+            List[str]: A list of YouTube channel IDs.
+        """
         if not os.path.exists(CHANNELS_FILE):
             return []
         with open(CHANNELS_FILE, "r") as f:
             return [line.strip() for line in f]
 
     def save_channels(self) -> None:
-        # Save channel list to file
+        """Save the current list of subscribed YouTube channel IDs to a file.
+
+        Creates the necessary directories if they do not exist.
+        """
         os.makedirs(os.path.dirname(CHANNELS_FILE), exist_ok=True)
         with open(CHANNELS_FILE, "w") as f:
             f.write("\n".join(self.channels))
 
     @staticmethod
     def load_watched() -> Set[str]:
-        # Load history from file
+        """Load the set of watched video IDs from a file.
+
+        If the watched file does not exist, it returns an empty set.
+
+        Returns:
+            Set[str]: A set of watched video IDs.
+        """
         if not os.path.exists(WATCHED_FILE):
             return set()
         with open(WATCHED_FILE, "r") as f:
             return set(line.strip() for line in f)
 
     def save_watched(self) -> None:
-        # Save history to file
+        """Save the current set of watched video IDs to a file.
+
+        Creates the necessary directories if they do not exist.
+        """
         os.makedirs(os.path.dirname(WATCHED_FILE), exist_ok=True)
         with open(WATCHED_FILE, "w") as f:
             f.write("\n".join(self.watched))
             
     @staticmethod
     def remove_emojis(text: str) -> str:
-        # Remove emojis from text
+        """Remove emojis and special characters from the given text.
+
+        Converts the text to lowercase and capitalizes it after removing emojis.
+
+        Args:
+            text (str): The text from which to remove emojis.
+
+        Returns:
+            str: The cleaned text without emojis.
+        """
         emoji_pattern = re.compile(
             "["
             "\U0001F600-\U0001F64F"  # emoticons
@@ -88,7 +133,16 @@ class YouTubeFeedManager:
     
     @staticmethod
     def iso_duration_to_seconds(duration: str) -> int:
-        # Convert ISO 8601 duration format to total seconds
+        """Convert an ISO 8601 duration string to total seconds.
+
+        Args:
+            duration (str): The duration string in ISO 8601 format (e.g., 'PT1H30M15S').
+
+        Returns:
+            int: The total duration in seconds.
+
+        If the duration format is invalid, it prints an error message and returns 0.
+        """
         match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?|P(\d+)D?", duration)
         if not match:
             print(f"Invalid duration format: {duration}")
@@ -100,6 +154,18 @@ class YouTubeFeedManager:
         return days * 86400 + hours * 3600 + minutes * 60 + seconds
 
     def fetch_videos(self, channel_id: str, feed) -> List[Dict]:
+        """Fetch videos from a YouTube channel feed, applying filters and caching.
+
+        Args:
+            channel_id (str): The ID of the YouTube channel.
+            feed: The parsed feed data from the channel's RSS feed.
+
+        Returns:
+            List[Dict]: A list of video information dictionaries that meet the criteria.
+
+        This method loads existing cache data, checks for new videos, filters them based
+        on duration and live status, updates the cache, and returns the list of videos.
+        """
         try:
             # Load existing cache
             video_cache = self.channel_extractor.load_cache(CACHE_FILE)

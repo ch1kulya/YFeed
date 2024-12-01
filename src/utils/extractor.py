@@ -5,23 +5,58 @@ from googleapiclient.errors import HttpError
 from utils.settings import NAMES_FILE
 
 class YouTubeChannelExtractor:
+    """Extracts YouTube channel information using the YouTube Data API.
+
+    This class provides methods to retrieve channel IDs from YouTube URLs,
+    validate channel IDs, and fetch channel names. It also handles caching
+    of channel names to reduce API calls.
+    """
+
     def __init__(self, api_key: str):
-        # Initialize YouTube API client
+        """Initialize the YouTubeChannelExtractor with a YouTube Data API key.
+
+        Args:
+            api_key (str): The YouTube Data API key for making API requests.
+        """
         self.youtube = build('youtube', 'v3', developerKey=api_key)
         self.channel_name_cache = self.load_cache(NAMES_FILE)  # Cache to store channel names
         
     def load_cache(self, file):
+        """Load cached data from a JSON file.
+
+        Args:
+            file (str): The path to the cache file.
+
+        Returns:
+            dict: A dictionary containing the cached data. Returns an empty dictionary if the file doesn't exist.
+        """
         if os.path.exists(file):
             with open(file, "r") as cache_file:
                 return json.load(cache_file)
         return {}
 
     def save_cache(self, cache_data, file):
+        """Save data to a cache file in JSON format.
+
+        Args:
+            cache_data (dict): The data to be cached.
+            file (str): The path to the cache file.
+        """
         with open(file, "w") as cache_file:
             json.dump(cache_data, cache_file)
 
     def get_channel_id(self, link: str) -> str:
-        # Get channel ID from YouTube URL
+        """Extract the YouTube channel ID from a given URL or username.
+
+        Args:
+            link (str): The YouTube channel URL or username.
+
+        Returns:
+            str: The extracted channel ID.
+
+        Raises:
+            ValueError: If the link is empty or in an invalid format.
+        """
         if not link:
             raise ValueError("Link cannot be empty")
 
@@ -40,7 +75,17 @@ class YouTubeChannelExtractor:
         raise ValueError("Invalid channel link format")
 
     def _get_channel_id_from_username(self, username: str) -> str:
-        # Get channel ID using YouTube Data API
+        """Retrieve the channel ID using a username via the YouTube Data API.
+
+        Args:
+            username (str): The username or custom URL of the YouTube channel.
+
+        Returns:
+            str: The channel ID corresponding to the given username.
+
+        Raises:
+            ValueError: If no channel is found, the channel has fewer than 100 subscribers, or an API error occurs.
+        """
         try:
             request = self.youtube.search().list(
                 part="id",
@@ -72,7 +117,14 @@ class YouTubeChannelExtractor:
             raise ValueError(f"YouTube API error: {str(e)}")
 
     def _validate_channel_id(self, channel_id: str) -> bool:
-        # Validate if channel ID exists
+        """Validate whether a channel ID exists on YouTube.
+
+        Args:
+            channel_id (str): The channel ID to validate.
+
+        Returns:
+            bool: True if the channel ID exists, False otherwise.
+        """
         try:
             response = self.youtube.channels().list(
                 part="id",
@@ -83,7 +135,16 @@ class YouTubeChannelExtractor:
             return False
 
     def get_channel_names(self, channel_ids: list[str]) -> dict:
-        # Retrieve the names of YouTube channels
+        """Retrieve the names of YouTube channels given their IDs.
+
+        Args:
+            channel_ids (list[str]): A list of YouTube channel IDs.
+
+        Returns:
+            dict: A dictionary mapping channel IDs to their names.
+
+        This method uses a cache to avoid unnecessary API calls. It updates the cache with any new channel names retrieved.
+        """
         cached_names = {cid: name for cid, name in self.channel_name_cache.items() if cid in channel_ids}
         remaining_ids = [cid for cid in channel_ids if cid not in cached_names]
 

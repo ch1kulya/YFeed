@@ -15,11 +15,22 @@ import re
 import concurrent.futures
 
 class Interface:
+    """Manages the user interface for the YFeed application."""
+
     def __init__(self, manager: YouTubeFeedManager):
+        """Initialize the Interface with a YouTubeFeedManager instance.
+
+        Args:
+            manager (YouTubeFeedManager): The manager instance to handle YouTube feeds.
+        """
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
-        
+
     def greet(self):
+        """Display a greeting message with a gradient color effect and clear the screen after a pause.
+
+        The greeting is based on the current time of day and is rendered using ASCII art with gradient colors.
+        """
         greeting = f"Good {['Night', 'Morning', 'Afternoon', 'Evening'][(datetime.now().hour // 6)]}!"
         greeting_art = pyfiglet.figlet_format(greeting, font='slant', width=self.terminal_width)
         gradient_art = self.gradient_color(
@@ -33,14 +44,27 @@ class Interface:
         print("\n")
         sleep(1.5)
         os.system("cls" if os.name == "nt" else "clear")
-            
+                
     def center_text(self, text):
+        """Center the given text horizontally in the terminal.
+
+        Args:
+            text (str): The text to be centered.
+
+        Returns:
+            str: The centered text with appropriate padding.
+        """
         stripped_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
         text_length = len(stripped_text)
         padding = (self.terminal_width - text_length) // 2
         return ' ' * max(padding, 0) + text
-        
+            
     def shut_down(self):
+        """Perform cleanup actions and display a goodbye message.
+
+        This method clears the terminal screen, deletes all .webm files in the current directory,
+        and displays a goodbye message with a gradient color effect.
+        """
         os.system("cls" if os.name == "nt" else "clear")
         webm_files = glob.glob(os.path.join(".", "*.webm"))
         for file in webm_files:
@@ -59,9 +83,18 @@ class Interface:
         for line in gradient_art.split('\n'):
             print(self.center_text(line))
         print("\n")
-
+    
     def gradient_color(self, text: str, start_color: tuple, end_color: tuple) -> str:
-        # Create a gradient effect for text
+        """Apply a gradient color effect to the given text.
+
+        Args:
+            text (str): The text to apply the gradient effect to.
+            start_color (tuple): RGB values for the start color (e.g., (255, 200, 255)).
+            end_color (tuple): RGB values for the end color (e.g., (255, 99, 255)).
+
+        Returns:
+            str: The text with ANSI escape codes applied for gradient coloring.
+        """
         result = ""
         for i, char in enumerate(text):
             if char == '\n':
@@ -72,9 +105,16 @@ class Interface:
             b = int(start_color[2] + (end_color[2] - start_color[2]) * i / len(text))
             result += f"\033[38;2;{r};{g};{b}m{char}"
         return result + Style.RESET_ALL
-
+    
     def format_time_ago(self, delta: timedelta) -> str:
-        # Format timedelta into human readable string"
+        """Format a timedelta object into a human-readable 'time ago' string.
+
+        Args:
+            delta (timedelta): The time difference to format.
+
+        Returns:
+            str: A string representing the time difference, e.g., '5m ago', '2h ago', '1d ago'.
+        """
         minutes = delta.total_seconds() / 60
         if minutes < 60:
             return f"{int(minutes)}m ago"
@@ -82,9 +122,16 @@ class Interface:
         if hours < 24:
             return f"{int(hours)}h ago"
         return f"{int(hours / 24)}d ago"
-
+    
     def draw_logo(self, text) -> None:
-        # Draw application logo
+        """Display the application logo with a gradient color effect.
+
+        Args:
+            text (str): Additional text to display alongside the logo.
+
+        This method clears the terminal screen, creates a logo with the specified text,
+        applies a gradient color, and centers it on the screen.
+        """
         os.system("cls" if os.name == "nt" else "clear")
         logo_text = "YFeed " + text
         logo = pyfiglet.figlet_format(logo_text, font='slant', width=self.terminal_width)
@@ -97,18 +144,34 @@ class Interface:
         for line in gradient_logo.split('\n'):
             print(self.center_text(line))
         print("\n")
-
+    
     def input_prompt(self, prompt: str) -> str:
-        # Input prompt
-        return input(f"{prompt}: {Style.RESET_ALL}")
+        """Display an input prompt to the user and return their input.
 
+        Args:
+            prompt (str): The prompt message to display to the user.
+
+        Returns:
+            str: The user's input as a string.
+        """
+        return input(f"{prompt}: {Style.RESET_ALL}")
+    
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
-        # Display message
+        """Display a message to the user in a specified color and wait for them to press Enter.
+
+        Args:
+            message (str): The message to display.
+            color (str, optional): The color to display the message in. Defaults to Fore.WHITE.
+        """
         print(f"{color}{message}{Style.RESET_ALL}")
         input(Fore.WHITE + f"Press {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
-
+    
     def main_menu(self) -> str:
-        # Display main menu
+        """Display the main menu and prompt the user to make a selection.
+
+        Returns:
+            str: The user's menu selection as a string.
+        """
         self.draw_logo("Home")
         options = [
             ("1", "Videos", "- Fetch latest videos"),
@@ -116,13 +179,21 @@ class Interface:
             ("3", "Settings", "- Manage configuration"),
             ("4", "Exit", "- Terminate & Cleanup")
         ]
-
+    
         for num, title, desc in options:
             print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
-
-        return self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
     
+        return self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
+        
     def parse_feed(self, channel_id):
+        """Fetch and parse the YouTube feed for a given channel ID with retries.
+
+        Args:
+            channel_id (str): The YouTube channel ID to fetch the feed for.
+
+        Returns:
+            feedparser.FeedParserDict or None: The parsed feed data, or None if fetching failed after retries.
+        """
         url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
         
         for attempt in range(3):
@@ -143,14 +214,26 @@ class Interface:
             except Exception as e:
                 print(f"{Fore.RED}Error parsing {channel_id}: {Fore.WHITE}{e}{Style.RESET_ALL}")
                 return None
-
+    
     def parse_feeds(self, channel_ids):
+        """Fetch and parse YouTube feeds concurrently for a list of channel IDs.
+
+        Args:
+            channel_ids (list): A list of YouTube channel IDs.
+
+        Returns:
+            list: A list of parsed feed data for each channel ID.
+        """
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
             results = list(executor.map(self.parse_feed, channel_ids))
         return results
-
+    
     def videos_menu(self) -> None:
-        # Display videos list
+        """Display the videos menu, fetch latest videos, and handle user interactions.
+
+        This method fetches the latest videos from the subscribed channels, displays them in a formatted list,
+        and allows the user to select a video to watch.
+        """
         self.draw_logo("Video List")
         videos = []
         fetching_start_time = time()
@@ -159,21 +242,21 @@ class Interface:
         parsed_feeds = self.parse_feeds(self.manager.channels)
         print("Parsed successfully.")
         print("Fetching...")
-
+    
         for i, channel_id in enumerate(self.manager.channels):
             feed = parsed_feeds[i]
             videos.extend(self.manager.fetch_videos(channel_id, feed))
-            
+                
         print("Fetched successfully.")
-            
+                
         if not videos:
             self.show_message("No videos found!", Fore.RED)
             return
-
+    
         videos = sorted(videos, key=lambda x: x["published"], reverse=True)
         cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
         videos = [video for video in videos if video["published"] > cutoff_date]
-
+    
         index_width = len(str(len(videos)))
         time_width = 10
         channel_width = 25
@@ -195,28 +278,28 @@ class Interface:
             self.draw_logo("Video List")
             print(header)
             print(separator)
-
+    
             for idx, video in enumerate(videos):
                 title = video["title"]
                 published = video["published"]
                 delta = datetime.now(published.tzinfo) - published
                 time_ago = self.format_time_ago(delta)
-
+    
                 channel_name = video.get("author", "Unknown Channel")
                 if len(channel_name) > channel_width - 3:
                     channel_name = channel_name[:channel_width-3] + "..."
-                
+                    
                 cutoff_index = len(title)
                 for char in ["|", "[", "(", ".", "@"]:
                     index = title.find(char)
                     if 0 <= index < cutoff_index:
                         cutoff_index = index
-                        
+                            
                 title = " ".join(title[:cutoff_index].split())
-                        
+                            
                 if len(title) > title_width - 3:
                     title = title[:title_width-3] + "..."
-
+    
                 if video["id"] in self.manager.watched:
                     color = Fore.LIGHTBLACK_EX
                     color_time = Fore.LIGHTBLACK_EX
@@ -229,14 +312,14 @@ class Interface:
                 else:
                     color = Fore.WHITE
                     color_time = Fore.WHITE
-
+    
                 print(
                     f"{str(idx + 1).rjust(index_width)} {Fore.WHITE}│{color} "
                     f"{title.ljust(title_width)} {Fore.WHITE}│{color} "
                     f"{channel_name.ljust(channel_width)} {Fore.WHITE}│{color} "
                     f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
                 )
-
+    
             choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
             if not choice.strip():
                 break
@@ -249,11 +332,14 @@ class Interface:
                         subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{video["link"]}"', shell=True)
                     else:
                         subprocess.Popen(f'start cmd /C python src/instance.py "{video["link"]}"', shell=True)
-
-                #TODO Linux/Mac support
-
+    
+                # TODO: Linux/Mac support
+    
     def channels_menu(self) -> None:
-        # Display channels menu
+        """Display the channels menu and handle user interactions.
+
+        This method allows the user to add, view, and remove channels from their subscription list.
+        """
         while True:
             self.draw_logo("Channels")
             index_width = 2
@@ -262,31 +348,31 @@ class Interface:
             channel_ids = self.manager.channels
             channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
             separator = "═" * (index_width + 1) + "╪" + "═" * (name_width + 2) + "╪" + "═" * (id_width)
-
+    
             options = [
                 ("1", "Add Channel", "- Subscribe"),
                 ("2", "View Channels", f"- Current: {len(channel_ids)}"),
                 ("3", "Remove Channel", "- Unsubscribe"),
                 ("4", "Return", "")
             ]
-
+    
             for num, title, desc in options:
                 print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
-
+    
             choice = self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
-
+    
             if choice == "1":
                 if not self.manager.config.get('api_key'):
                     self.show_message("Please set YouTube API key in settings first!", Fore.RED)
                     continue
                 
                 print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to stop adding.")
-
+    
                 while True:
                     link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
                     if not link.strip():
                         break
-
+    
                     try:
                         channel_id = self.manager.channel_extractor.get_channel_id(link)
                         if channel_id not in self.manager.channels:
@@ -297,27 +383,27 @@ class Interface:
                             self.show_message("Channel already exists.", Fore.YELLOW)
                     except Exception as e:
                         self.show_message(f"Error: {str(e)}", Fore.RED)
-
+    
             elif choice == "2":
                 self.draw_logo("Channels")
-
+    
                 if not self.manager.channels:
                     self.show_message("No channels added yet!", Fore.YELLOW)
                     continue
-
+    
                 print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
                 print(separator)
                 for idx, channel_id in enumerate(channel_ids, 1):
                     channel_name = channel_map.get(channel_id, "Unknown")
                     print(f"{str(idx).center(index_width)} │ {channel_name.ljust(name_width)} │ {channel_id}")
-
+    
                 input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
-
+    
             elif choice == "3":
                 if not self.manager.channels:
                     self.show_message("No channels to remove!", Fore.YELLOW)
                     continue
-
+    
                 while True:
                     self.draw_logo("Channels")
                     print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
@@ -325,34 +411,38 @@ class Interface:
                     for idx, channel_id in enumerate(channel_ids, 1):
                         channel_name = channel_map.get(channel_id, "Unknown")
                         print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
-                        
+                            
                     print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel or", end=" ")
-
+    
                     choice = self.input_prompt(
                         f"{Fore.WHITE}enter {Fore.YELLOW}number{Fore.WHITE} to remove"
                     )
-
+    
                     if not choice.strip():
                         break
-
+    
                     if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                         removed = self.manager.channels.pop(int(choice) - 1)
                         self.manager.save_channels()
                         print(f"{Fore.GREEN}Removed channel:{Fore.WHITE} {removed}")
                     else:
                         self.show_message("Invalid choice! Please enter a valid number.", Fore.RED)
-
+    
                     if not self.manager.channels:
                         self.show_message("No more channels to remove!", Fore.YELLOW)
                         break
-
+    
             elif choice == "4":
                 break
             else:
                 self.show_message("Invalid choice!", Fore.RED)
-
+    
     def settings_menu(self) -> None:
-        # Display settings menu
+        """Display the settings menu and handle user interactions.
+
+        This method allows the user to modify application settings such as days filter,
+        minimum video length, and YouTube API key.
+        """
         while True:
             self.draw_logo("Settings")
             options = [
@@ -361,11 +451,11 @@ class Interface:
                 ("3", "YouTube API Key", f"- Current: {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'}"),
                 ("4", "Return", "")
             ]
-
+    
             for num, title, desc in options:
                 print(f"{Fore.CYAN}{num}. {Fore.WHITE}{title} {Fore.LIGHTBLACK_EX}{desc}{Style.RESET_ALL}")
             choice = self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
-
+    
             if choice == "1":
                 days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days")
                 if days.isdigit() and int(days) > 0:
@@ -383,7 +473,7 @@ class Interface:
                     self.show_message("Settings updated!", Fore.GREEN)
                 else:
                     self.show_message("Invalid input.", Fore.RED)
-
+    
             elif choice == "3":
                 api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}")
                 if api_key.strip():
@@ -393,7 +483,7 @@ class Interface:
                     self.show_message("API Key updated!", Fore.GREEN)
                 else:
                     self.show_message("Invalid API Key.", Fore.RED)
-
+    
             elif choice == "4":
                 break
             else:

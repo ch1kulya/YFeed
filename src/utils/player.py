@@ -8,11 +8,25 @@ from utils.interface import Interface
 from utils.manager import YouTubeFeedManager
 
 class MediaPlayer:
+    """Handles video playback functionality, including downloading and playing videos using external tools."""
+
     def __init__(self):
+        """Initialize the MediaPlayer with a YouTubeFeedManager and an Interface instance."""
         self.manager = YouTubeFeedManager()
         self.interface = Interface(self.manager)
     
     def watch_video(self, url):
+        """Download and play a YouTube video based on the provided URL.
+
+        This method attempts to download the video using yt-dlp. If the video is already
+        downloaded, it skips the download step. After downloading, it plays the video
+        using the specified media player.
+
+        Args:
+            url (str): The URL of the YouTube video to watch.
+
+        If downloading fails, it attempts to open the video in a web browser.
+        """
         self.interface.draw_logo("Media Loader")
         if 'v=' in url:
             temp_file = 'video-' + url.split('v=')[1][:11] + '.webm'
@@ -70,6 +84,13 @@ class MediaPlayer:
             webbrowser.open(url)
                 
     def play_video(self, video_file):
+        """Play the specified video file using the mpv media player with predefined settings.
+
+        Args:
+            video_file (str): The path to the video file to be played.
+
+        This method constructs a command with various mpv options and executes it using subprocess.
+        """
         # Start mpv with flags
         command = (
             f"mpv --hwdec=auto --hr-seek=always --ontop --autofit=40% --volume=50 "

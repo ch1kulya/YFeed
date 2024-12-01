@@ -7,6 +7,14 @@ init(autoreset=True)
 os.system("cls" if os.name == "nt" else "clear")
 
 def watch_video(video_link):
+    """Create a MediaPlayer instance and play the video at the provided link.
+
+    Args:
+        video_link (str): The URL of the video to watch.
+
+    This function initializes a MediaPlayer object and calls its watch_video method
+    to download and play the video specified by the video_link.
+    """
     player = MediaPlayer()
     player.watch_video(video_link)
 

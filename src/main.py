@@ -5,7 +5,12 @@ from utils.manager import YouTubeFeedManager
 init(autoreset=True)
 
 def main():
-    # Main application entry point
+    """Main entry point for the YFeed application.
+
+    This function initializes the YouTubeFeedManager and Interface, displays a greeting,
+    and enters the main application loop where it responds to user input to navigate
+    through the application's menus.
+    """
     manager = YouTubeFeedManager()
     interface = Interface(manager)
     interface.greet()
