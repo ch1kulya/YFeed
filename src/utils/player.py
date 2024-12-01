@@ -1,6 +1,5 @@
 import os
 import webbrowser
-import pyfiglet
 import subprocess
 from time import sleep
 from yt_dlp import YoutubeDL
@@ -14,17 +13,7 @@ class MediaPlayer:
         self.interface = Interface(self.manager)
     
     def watch_video(self, url):
-        logo = pyfiglet.figlet_format("YFeed Media Player", font='slant', width=self.interface.terminal_width)
-        gradient_logo = self.interface.gradient_color(
-            logo,
-            (255, 51, 51),
-            (255, 69, 255)
-        )
-        print("\n")
-        for line in gradient_logo.split('\n'):
-            print(" " * 3 + line)
-        print("\n")
-
+        self.interface.draw_logo("Media Loader")
         if 'v=' in url:
             temp_file = 'video-' + url.split('v=')[1][:11] + '.webm'
         elif '/' in url:
@@ -42,6 +31,21 @@ class MediaPlayer:
             'max_downloads': 8,
             'concurrent_fragments': 8,
             'nooverwrites': False,
+            'postprocessors': [{
+                'key': 'SponsorBlock',
+                'api': 'https://sponsor.ajay.app',
+                'categories': {
+                    'sponsor',
+                    'intro',
+                    'outro',
+                    'selfpromo',
+                    'filler',
+                },
+                'when': 'after_filter', 
+            }, {
+                'key': 'ModifyChapters',
+                'remove_sponsor_segments': {'sponsor', 'intro', 'outro', 'selfpromo', 'filler'},
+            }],
         }
 
         try:
@@ -68,7 +72,7 @@ class MediaPlayer:
     def play_video(self, video_file):
         # Start mpv with flags
         command = (
-            f"mpv --hwdec=auto --hr-seek=always --ontop --autofit=50% --volume=50 "
+            f"mpv --hwdec=auto --hr-seek=always --ontop --autofit=40% --volume=50 "
             f"--cache=yes --cache-secs=20 --no-border "
             f"--osc=no --window-corners=round {video_file}"
         )
@@ -76,8 +80,6 @@ class MediaPlayer:
         try:
             subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
             print("Video playback started successfully.")
-            sleep(1)
         except Exception as e:
             print(f"Error starting mpv: {e}")
-
-        sleep(1)
+            sleep(1)
