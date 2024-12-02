@@ -1,8 +1,16 @@
 from colorama import Fore, init
 from utils.interface import Interface
 from utils.manager import YouTubeFeedManager
+import shutil
+import sys
 
 init(autoreset=True)
+
+def check_dependencies():
+    for dependency in ["ffmpeg", "mpv"]:
+        if not shutil.which(dependency):
+            print(f"Error: {dependency} is not installed or not in PATH.")
+            sys.exit(1)
 
 def main():
     """Main entry point for the YFeed application.
@@ -11,6 +19,7 @@ def main():
     and enters the main application loop where it responds to user input to navigate
     through the application's menus.
     """
+    check_dependencies()
     manager = YouTubeFeedManager()
     interface = Interface(manager)
     interface.greet()
