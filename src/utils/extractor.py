@@ -19,7 +19,7 @@ class YouTubeChannelExtractor:
             api_key (str): The YouTube Data API key for making API requests.
         """
         self.youtube = build('youtube', 'v3', developerKey=api_key)
-        self.channel_name_cache = self.load_cache(NAMES_FILE)  # Cache to store channel names
+        self.channel_name_cache = self.load_cache(NAMES_FILE)
         
     def load_cache(self, file):
         """Load cached data from a JSON file.
@@ -46,13 +46,13 @@ class YouTubeChannelExtractor:
             json.dump(cache_data, cache_file)
 
     def get_channel_id(self, link: str) -> str:
-        """Extract the YouTube channel ID from a given URL or username.
+        """Extract the YouTube channel ID or handle from a given URL.
 
         Args:
-            link (str): The YouTube channel URL or username.
+            link (str): The YouTube channel URL.
 
         Returns:
-            str: The extracted channel ID.
+            str: The extracted channel ID or handle.
 
         Raises:
             ValueError: If the link is empty or in an invalid format.
@@ -66,53 +66,39 @@ class YouTubeChannelExtractor:
             channel_id = link.split("channel/")[-1].split("/")[0]
             if self._validate_channel_id(channel_id):
                 return channel_id
-        elif "/@" in link or "/user/" in link:
-            username = link.split("/")[-1]
-            return self._get_channel_id_from_username(username)
-        elif not any(x in link for x in ["youtube.com", "youtu.be"]):
-            return self._get_channel_id_from_username(link)
+        elif "/@" in link:
+            handle = link.split("/@")[-1].split("/")[0]
+            return self.get_channel_id_from_handle(handle)
+        elif link.startswith("@"):
+            handle = link[1:].split("/")[0]
+            return self.get_channel_id_from_handle(handle)
 
         raise ValueError("Invalid channel link format")
 
-    def _get_channel_id_from_username(self, username: str) -> str:
-        """Retrieve the channel ID using a username via the YouTube Data API.
+    def get_channel_id_from_handle(self, handle: str) -> str:
+        """Retrieve the channel ID using a handle via the YouTube Data API.
 
         Args:
-            username (str): The username or custom URL of the YouTube channel.
+            handle (str): The handle of the YouTube channel.
 
         Returns:
-            str: The channel ID corresponding to the given username.
+            str: The channel ID corresponding to the given handle.
 
         Raises:
-            ValueError: If no channel is found, the channel has fewer than 100 subscribers, or an API error occurs.
+            ValueError: If no channel is found or an API error occurs.
         """
         try:
-            request = self.youtube.search().list(
+            request = self.youtube.channels().list(
                 part="id",
-                q=username,
-                type="channel",
-                maxResults=3
+                forHandle=handle
             )
             response = request.execute()
 
             if not response.get("items"):
-                raise ValueError(f"No channel found for username: {username}")
+                raise ValueError(f"No channel found for handle: {handle}")
             
-            channels = []
-            for item in response["items"]:
-                channel_id = item["id"]["channelId"]
-                channel_request = self.youtube.channels().list(
-                    part="statistics",
-                    id=channel_id
-                )
-                channel_response = channel_request.execute()
-                subscribers_count = int(channel_response["items"][0]["statistics"]["subscriberCount"])
-                channels.append((channel_id, subscribers_count))
-            
-            best_channel = max(channels, key=lambda x: x[1])
-            if best_channel[1] < 100:
-                raise ValueError(f"Channel does not have at least 100 subscribers")
-            return best_channel[0]
+            channel_id = response["items"][0]["id"]
+            return channel_id
         except HttpError as e:
             raise ValueError(f"YouTube API error: {str(e)}")
 
@@ -145,38 +131,27 @@ class YouTubeChannelExtractor:
 
         This method uses a cache to avoid unnecessary API calls. It updates the cache with any new channel names retrieved.
         """
-        cached_names = {cid: name for cid, name in self.channel_name_cache.items() if cid in channel_ids}
+        cached_names = {cid: self.channel_name_cache[cid] for cid in channel_ids if cid in self.channel_name_cache}
         remaining_ids = [cid for cid in channel_ids if cid not in cached_names]
-
         if not remaining_ids:
             return cached_names
 
         try:
-            # Perform batch request to retrieve channel details
-            request = self.youtube.channels().list(
+            response = self.youtube.channels().list(
                 part="snippet",
                 id=",".join(remaining_ids)
-            )
-            response = request.execute()
+            ).execute()
 
-            # Map channel IDs to names and cache them
-            for item in response.get("items", []):
-                channel_id = item["id"]
-                channel_name = item["snippet"]["title"]
-                self.channel_name_cache[channel_id] = channel_name
-                cached_names[channel_id] = channel_name
-
-            for channel_id in remaining_ids:
-                if channel_id not in cached_names:
-                    cached_names[channel_id] = "Unknown"
-                    self.channel_name_cache[channel_id] = "Unknown"
+            new_names = {item["id"]: item["snippet"]["title"] for item in response.get("items", [])}
+            self.channel_name_cache.update(new_names)
+            cached_names.update(new_names)
 
         except HttpError as e:
             print(f"YouTube API error: {str(e)}")
-            for channel_id in remaining_ids:
-                cached_names[channel_id] = "Unknown"
-                self.channel_name_cache[channel_id] = "Unknown"
-                
-        self.save_cache(self.channel_name_cache, NAMES_FILE)
 
+        for cid in remaining_ids:
+            cached_names.setdefault(cid, "Unknown")
+            self.channel_name_cache.setdefault(cid, "Unknown")
+
+        self.save_cache(self.channel_name_cache, NAMES_FILE)
         return cached_names
