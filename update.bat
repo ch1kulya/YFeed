@@ -5,7 +5,7 @@ REM Configuration
 set REPO_URL=https://github.com/ch1kulya/YFeed.git
 set TEMP_DIR=%~dp0temp_repo
 set LOCAL_DIR=%~dp0
-set EXCLUDE_DIR=data
+set EXCLUDE_DIRS=data binaries
 
 REM Check if git is installed
 git --version >nul 2>&1
@@ -30,29 +30,45 @@ IF %ERRORLEVEL% NEQ 0 (
     exit /b
 )
 
-REM Copy files except for the EXCLUDE_DIR
+REM Copy files except for the EXCLUDE_DIRS
 echo Updating application...
 FOR /D %%D IN ("%TEMP_DIR%\*") DO (
     set FOLDER_NAME=%%~nxD
-    IF /I "!FOLDER_NAME!" NEQ "%EXCLUDE_DIR%" (
+    set SKIP_FOLDER=0
+    FOR %%E IN (%EXCLUDE_DIRS%) DO (
+        IF /I "!FOLDER_NAME!" EQU "%%E" (
+            set SKIP_FOLDER=1
+        )
+    )
+    IF !SKIP_FOLDER! EQU 0 (
         IF EXIST "%LOCAL_DIR%!FOLDER_NAME!" (
             echo Deleting existing folder: !FOLDER_NAME!
             rmdir /s /q "%LOCAL_DIR%!FOLDER_NAME!"
         )
         echo Copying folder: !FOLDER_NAME!
         xcopy /e /i /q "%%D" "%LOCAL_DIR%!FOLDER_NAME!" >nul
+    ) ELSE (
+        echo Skipping excluded folder: !FOLDER_NAME!
     )
 )
 
 FOR %%F IN ("%TEMP_DIR%\*") DO (
     set FILE_NAME=%%~nxF
-    IF /I "!FILE_NAME!" NEQ "%EXCLUDE_DIR%" (
+    set SKIP_FILE=0
+    FOR %%E IN (%EXCLUDE_DIRS%) DO (
+        IF /I "!FILE_NAME!" EQU "%%E" (
+            set SKIP_FILE=1
+        )
+    )
+    IF !SKIP_FILE! EQU 0 (
         IF EXIST "%LOCAL_DIR%!FILE_NAME!" (
             echo Deleting existing file: !FILE_NAME!
             del /q "%LOCAL_DIR%!FILE_NAME!"
         )
         echo Copying file: !FILE_NAME!
         copy /y "%%F" "%LOCAL_DIR%!FILE_NAME!" >nul
+    ) ELSE (
+        echo Skipping excluded file: !FILE_NAME!
     )
 )
 
