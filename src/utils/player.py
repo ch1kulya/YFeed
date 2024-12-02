@@ -30,6 +30,8 @@ class MediaPlayer:
         self.interface.draw_logo("Media Loader")
         if 'v=' in url:
             temp_file = 'video-' + url.split('v=')[1][:11] + '.webm'
+        elif '=' in url:
+            temp_file = 'video-' + url.split('=')[-1] + '.webm'
         elif '/' in url:
             temp_file = 'video-' + url.split('/')[-1] + '.webm'
         else:
