@@ -28,12 +28,12 @@ python src/main.py
 4. Generate an **API Key** from the [**Credentials**](https://console.cloud.google.com/apis/credentials) section.
 
 ### Data Structure
-| **File Name**        | **Description**                         |
-|----------------------|-----------------------------------------|
-| `settings.json`      | Stores user-configurable settings       |
-| `names.json`         | Stores subscribed channel names         |
-| `channels.yfe`       | Stores subscribed channel IDs           |
-| `watched.yfe`        | Stores watched video IDs                |
-| `cache.json`         | Stores cached video data                |
+| **File**             | **Stores**                       |
+|----------------------|----------------------------------|
+| `settings.json`      | User-configurable settings       |
+| `names.json`         | Subscribed channel names         |
+| `channels.yfe`       | Subscribed channel IDs           |
+| `watched.yfe`        | Watched video IDs                |
+| `cache.json`         | Cached video data                |
 
 #### Contributing is encouraged 🤗
