@@ -28,14 +28,16 @@ def main():
         choice = interface.main_menu()
         if choice == "1":
             interface.videos_menu()
-        elif choice == "2":
-            interface.channels_menu()
-        elif choice == "3":
-            interface.settings_menu()
-        elif choice == "4":
+        elif choice in ["2", "3", "4"]:
+            interface.channels_menu(choice)
+        elif choice in ["5", "6", "7"]:
+            interface.settings_menu(choice)
+        elif choice == "8":
+            interface.search_menu()
+        elif choice == "9":
             interface.shut_down()
             break
-        else:
+        elif choice:
             interface.show_message("Invalid choice!", Fore.RED)
 
 if __name__ == "__main__":
