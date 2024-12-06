@@ -12,7 +12,17 @@ import subprocess
 import feedparser
 import requests
 import re
+import msvcrt
 import concurrent.futures
+
+def getch():
+    """Get single symbol from keyboard without input."""
+    try:
+        # Windows
+        return msvcrt.getch().decode()
+    except ImportError:
+        # TODO Linux/Mac Support
+        pass
 
 class Interface:
     """Manages the user interface for the YFeed application."""
@@ -140,7 +150,7 @@ class Interface:
             (255, 255, 0),  # Yellow
             (255, 69, 0)    # Red-Orange
         )
-        print("\n")
+        print(3 * "\n")
         for line in gradient_logo.split('\n'):
             print(self.center_text(line))
         print("\n")
@@ -174,15 +184,20 @@ class Interface:
         """
         self.draw_logo("Home")
         options = [
-            (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}2{Fore.WHITE}. Subscribe            {Fore.YELLOW}3{Fore.WHITE}. Unsubscribe  "),
-            (f"{Fore.YELLOW}4{Fore.WHITE}. Channel list         {Fore.YELLOW}5{Fore.WHITE}. Days filter          {Fore.YELLOW}6{Fore.WHITE}. Length filter"),
-            (f"{Fore.YELLOW}7{Fore.WHITE}. Set API Key          {Fore.YELLOW}8{Fore.WHITE}. Search               {Fore.YELLOW}9{Fore.WHITE}. Terminate    ")
+            (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}4{Fore.WHITE}. Subscribe            {Fore.YELLOW}7{Fore.WHITE}. Days filter  "),
+            (f"{Style.DIM}{Fore.YELLOW}2{Fore.WHITE}. Search{Style.NORMAL}               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
+            (f"{Style.DIM}{Fore.YELLOW}3{Fore.WHITE}. Live streams{Style.NORMAL}         {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
         ]
     
         for option in options:
             print(self.center_text(option))
-    
-        return self.input_prompt(f"\n{Fore.WHITE}Choose an {Fore.YELLOW}option{Fore.WHITE}")
+        print("\n")
+        print(self.center_text(f"{Fore.WHITE}Press a number [{Fore.YELLOW}1{Fore.WHITE}-{Fore.YELLOW}9{Fore.WHITE}] to choose an [{Fore.YELLOW}option{Fore.WHITE}] or [{Fore.RED}q{Fore.WHITE}] to terminate "))
+        print("\n")
+        while True:
+            selection = getch()
+            if selection in '123456789q':
+                return selection
         
     def parse_feed(self, channel_id):
         """Fetch and parse the YouTube feed for a given channel ID with retries.
@@ -343,7 +358,7 @@ class Interface:
         channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
         separator = "═" * (index_width + 1) + "╪" + "═" * (name_width + 2) + "╪" + "═" * (id_width)
 
-        if choice == "2":
+        if choice == "4":
             if not self.manager.config.get('api_key'):
                 self.show_message("Please set YouTube API key in settings first!", Fore.RED)
             link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
@@ -359,7 +374,7 @@ class Interface:
                 except Exception as e:
                     self.show_message(f"Error: {str(e)}", Fore.RED)
 
-        elif choice == "4":
+        elif choice == "5":
             if not self.manager.channels:
                 self.show_message("No channels added yet!", Fore.YELLOW)
 
@@ -371,7 +386,7 @@ class Interface:
 
             input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
 
-        elif choice == "3":
+        elif choice == "6":
             if not self.manager.channels:
                 self.show_message("No channels to remove!", Fore.YELLOW)
 
@@ -410,7 +425,7 @@ class Interface:
         This method allows the user to modify application settings such as days filter,
         minimum video length, and YouTube API key.
         """
-        if choice == "5":
+        if choice == "7":
             days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days" + f" (current - {self.manager.config['days_filter']} days)")
             if days.isdigit() and int(days) > 0:
                 self.manager.config["days_filter"] = int(days)
@@ -419,7 +434,7 @@ class Interface:
             elif days.strip():
                 self.show_message("Invalid input.", Fore.RED)
             
-        elif choice == "6":
+        elif choice == "8":
             new_length = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of minutes" + f" (current {self.manager.config['min_video_length']} minutes)")
             if new_length.isdigit() and int(new_length) > 0:
                 self.manager.config["min_video_length"] = int(new_length)
@@ -428,7 +443,7 @@ class Interface:
             elif new_length.strip():
                 self.show_message("Invalid input.", Fore.RED)
 
-        elif choice == "7":
+        elif choice == "9":
             api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}" + f" (current {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})")
             if api_key.strip():
                 self.manager.config["api_key"] = api_key.strip()
@@ -439,4 +454,7 @@ class Interface:
             #    self.show_message("Invalid API Key.", Fore.RED)
     
     def search_menu(self) -> None:
+        pass
+
+    def live_menu(self) -> None:
         pass

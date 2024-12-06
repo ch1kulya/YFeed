@@ -28,13 +28,15 @@ def main():
         choice = interface.main_menu()
         if choice == "1":
             interface.videos_menu()
-        elif choice in ["2", "3", "4"]:
-            interface.channels_menu(choice)
-        elif choice in ["5", "6", "7"]:
-            interface.settings_menu(choice)
-        elif choice == "8":
+        elif choice == "2":
             interface.search_menu()
-        elif choice == "9":
+        elif choice == "3":
+            interface.live_menu()
+        elif choice in ["4", "5", "6"]:
+            interface.channels_menu(choice)
+        elif choice in ["7", "8", "9"]:
+            interface.settings_menu(choice)
+        elif choice == "q":
             interface.shut_down()
             break
         elif choice:
