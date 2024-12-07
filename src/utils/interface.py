@@ -363,7 +363,6 @@ class Interface:
                 if channel_id not in self.manager.channels:
                     self.manager.channels.append(channel_id)
                     self.manager.save_channels()
-                    print(Fore.GREEN + "Channel added successfully!")
                 else:
                     self.show_message("Channel already exists.", Fore.YELLOW)
             except Exception as e:
@@ -419,7 +418,6 @@ class Interface:
         if days.isdigit() and int(days) > 0:
             self.manager.config["days_filter"] = int(days)
             self.manager.save_config()
-            self.show_message("Settings updated!", Fore.GREEN)
         elif days.strip():
             self.show_message("Invalid input.", Fore.RED)
             
@@ -429,7 +427,6 @@ class Interface:
         if new_length.isdigit() and int(new_length) > 0:
             self.manager.config["min_video_length"] = int(new_length)
             self.manager.save_config()
-            self.show_message("Settings updated!", Fore.GREEN)
         elif new_length.strip():
             self.show_message("Invalid input.", Fore.RED)
 
