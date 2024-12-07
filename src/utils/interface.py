@@ -35,6 +35,12 @@ class Interface:
         """
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
+        self.index_width = 2
+        self.name_width = 30
+        self.id_width = 26
+        self.channel_ids = self.manager.channels
+        self.channel_map = self.manager.channel_extractor.get_channel_names(self.channel_ids)
+        self.separator = "═" * (self.index_width + 1) + "╪" + "═" * (self.name_width + 2) + "╪" + "═" * (self.id_width)
 
     def greet(self):
         """Display a greeting message with a gradient color effect and clear the screen after a pause.
@@ -345,116 +351,101 @@ class Interface:
                         subprocess.Popen(f'start cmd /C python src/instance.py "{video["link"]}"', shell=True)
     
                 # TODO: Linux/Mac support
-    
-    def channels_menu(self, choice) -> None:
-        """Display the channels menu and handle user interactions.
 
-        This method allows the user to add, view, and remove channels from their subscription list.
-        """
-        index_width = 2
-        name_width = 30
-        id_width = 26
-        channel_ids = self.manager.channels
-        channel_map = self.manager.channel_extractor.get_channel_names(channel_ids)
-        separator = "═" * (index_width + 1) + "╪" + "═" * (name_width + 2) + "╪" + "═" * (id_width)
-
-        if choice == "4":
-            if not self.manager.config.get('api_key'):
-                self.show_message("Please set YouTube API key in settings first!", Fore.RED)
-            link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
-            if link.strip():
-                try:
-                    channel_id = self.manager.channel_extractor.get_channel_id(link)
-                    if channel_id not in self.manager.channels:
-                        self.manager.channels.append(channel_id)
-                        self.manager.save_channels()
-                        print(Fore.GREEN + "Channel added successfully!")
-                    else:
-                        self.show_message("Channel already exists.", Fore.YELLOW)
-                except Exception as e:
-                    self.show_message(f"Error: {str(e)}", Fore.RED)
-
-        elif choice == "5":
-            if not self.manager.channels:
-                self.show_message("No channels added yet!", Fore.YELLOW)
-
-            print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
-            print(separator)
-            for idx, channel_id in enumerate(channel_ids, 1):
-                channel_name = channel_map.get(channel_id, "Unknown")
-                print(f"{str(idx).center(index_width)} │ {channel_name.ljust(name_width)} │ {channel_id}")
-
-            input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
-
-        elif choice == "6":
-            if not self.manager.channels:
-                self.show_message("No channels to remove!", Fore.YELLOW)
-
-            while True:
-                print(f"{Fore.CYAN}{'#'.center(index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
-                print(separator)
-                for idx, channel_id in enumerate(channel_ids, 1):
-                    channel_name = channel_map.get(channel_id, "Unknown")
-                    print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
-                        
-                print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel or", end=" ")
-
-                choice = self.input_prompt(
-                    f"{Fore.WHITE}enter {Fore.YELLOW}number{Fore.WHITE} to remove"
-                )
-
-                if not choice.strip():
-                    break
-
-                if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
-                    removed = self.manager.channels.pop(int(choice) - 1)
+    def add_channel(self) -> None:
+        """Add a YouTube channel to the manager."""
+        if not self.manager.config.get('api_key'):
+            self.show_message("Please set YouTube API key in settings first!", Fore.RED)
+        link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
+        if link.strip():
+            try:
+                channel_id = self.manager.channel_extractor.get_channel_id(link)
+                if channel_id not in self.manager.channels:
+                    self.manager.channels.append(channel_id)
                     self.manager.save_channels()
-                    print(f"{Fore.GREEN}Removed channel:{Fore.WHITE} {removed}")
+                    print(Fore.GREEN + "Channel added successfully!")
                 else:
-                    self.show_message("Invalid choice! Please enter a valid number.", Fore.RED)
+                    self.show_message("Channel already exists.", Fore.YELLOW)
+            except Exception as e:
+                self.show_message(f"Error: {str(e)}", Fore.RED)
 
-                if not self.manager.channels:
-                    self.show_message("No more channels to remove!", Fore.YELLOW)
-                    break
-        else:
-            self.show_message("Invalid choice!", Fore.RED)
-    
-    def settings_menu(self, choice) -> None:
-        """Display the settings menu and handle user interactions.
 
-        This method allows the user to modify application settings such as days filter,
-        minimum video length, and YouTube API key.
-        """
-        if choice == "7":
-            days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days" + f" (current - {self.manager.config['days_filter']} days)")
-            if days.isdigit() and int(days) > 0:
-                self.manager.config["days_filter"] = int(days)
-                self.manager.save_config()
-                self.show_message("Settings updated!", Fore.GREEN)
-            elif days.strip():
-                self.show_message("Invalid input.", Fore.RED)
+    def list_channels(self) -> None:
+        """List all managed YouTube channels."""
+        if not self.manager.channels:
+            self.show_message("No channels added yet!", Fore.YELLOW)
+
+        print(f"{Fore.CYAN}{'#'.center(self.index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(self.name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
+        print(self.separator)
+        for idx, channel_id in enumerate(self.channel_ids, 1):
+            channel_name = self.channel_map.get(channel_id, "Unknown")
+            print(f"{str(idx).center(self.index_width)} │ {channel_name.ljust(self.name_width)} │ {channel_id}")
+
+        input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
+
+
+    def remove_channels(self) -> None:
+        """Remove one or more YouTube channels from the manager."""
+        while True:
+            print(f"{Fore.CYAN}{'#'.center(self.index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(self.name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
+            print(self.separator)
+            for idx, channel_id in enumerate(self.channel_ids, 1):
+                channel_name = self.channel_map.get(channel_id, "Unknown")
+                print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
+                    
+            print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel or", end=" ")
+
+            choice = self.input_prompt(
+                f"{Fore.WHITE}enter {Fore.YELLOW}number{Fore.WHITE} to remove"
+            )
+
+            if not choice.strip():
+                break
+
+            if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
+                removed = self.manager.channels.pop(int(choice) - 1)
+                self.manager.save_channels()
+                print(f"{Fore.GREEN}Removed channel:{Fore.WHITE} {removed}")
+            else:
+                self.show_message("Invalid choice! Please enter a valid number.", Fore.RED)
+
+            if not self.manager.channels:
+                self.show_message("No more channels to remove!", Fore.YELLOW)
+                break
+
+    def days_filter(self) -> None:
+        """Manage the filter for the number of days."""
+        days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days" + f" (current - {self.manager.config['days_filter']} days)")
+        if days.isdigit() and int(days) > 0:
+            self.manager.config["days_filter"] = int(days)
+            self.manager.save_config()
+            self.show_message("Settings updated!", Fore.GREEN)
+        elif days.strip():
+            self.show_message("Invalid input.", Fore.RED)
             
-        elif choice == "8":
-            new_length = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of minutes" + f" (current {self.manager.config['min_video_length']} minutes)")
-            if new_length.isdigit() and int(new_length) > 0:
-                self.manager.config["min_video_length"] = int(new_length)
-                self.manager.save_config()
-                self.show_message("Settings updated!", Fore.GREEN)
-            elif new_length.strip():
-                self.show_message("Invalid input.", Fore.RED)
+    def length_filter(self) -> None:
+        """Manage the minimum video length filter."""
+        new_length = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of minutes" + f" (current {self.manager.config['min_video_length']} minutes)")
+        if new_length.isdigit() and int(new_length) > 0:
+            self.manager.config["min_video_length"] = int(new_length)
+            self.manager.save_config()
+            self.show_message("Settings updated!", Fore.GREEN)
+        elif new_length.strip():
+            self.show_message("Invalid input.", Fore.RED)
 
-        elif choice == "9":
-            api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}" + f" (current {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})")
-            if api_key.strip():
-                self.manager.config["api_key"] = api_key.strip()
-                self.manager.save_config()
-                self.manager.channel_extractor = YouTubeChannelExtractor(api_key.strip())
-                self.show_message("API Key updated!", Fore.GREEN)
-            #elif api_key:
-            #    self.show_message("Invalid API Key.", Fore.RED)
+    def manage_api(self) -> None:
+        """Manage the YouTube API key."""
+        api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}" + f" (current {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})")
+        if api_key.strip():
+            self.manager.config["api_key"] = api_key.strip()
+            self.manager.save_config()
+            self.manager.channel_extractor = YouTubeChannelExtractor(api_key.strip())
+            self.show_message("API Key updated!", Fore.GREEN)
+        #elif api_key:
+        #TODO api_key validation
     
     def search_menu(self) -> None:
-        pass
+        pass #TODO youtube search
 
     def live_menu(self) -> None:
-        pass
+        pass #TODO live streams menu

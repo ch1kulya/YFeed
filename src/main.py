@@ -24,21 +24,27 @@ def main():
     interface = Interface(manager)
     interface.greet()
 
+    actions = {
+        "1": interface.videos_menu,
+        "2": interface.search_menu,
+        "3": interface.live_menu,
+        "4": interface.add_channel,
+        "5": interface.list_channels,
+        "6": interface.remove_channels,
+        "7": interface.days_filter,
+        "8": interface.length_filter,
+        "9": interface.manage_api,
+        "q": interface.shut_down
+    }
+
     while True:
         choice = interface.main_menu()
-        if choice == "1":
-            interface.videos_menu()
-        elif choice == "2":
-            interface.search_menu()
-        elif choice == "3":
-            interface.live_menu()
-        elif choice in ["4", "5", "6"]:
-            interface.channels_menu(choice)
-        elif choice in ["7", "8", "9"]:
-            interface.settings_menu(choice)
-        elif choice == "q":
-            interface.shut_down()
-            break
+        action = actions.get(choice)
+
+        if action:
+            action()
+            if choice == "q":
+                break
         elif choice:
             interface.show_message("Invalid choice!", Fore.RED)
 
