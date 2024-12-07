@@ -356,7 +356,7 @@ class Interface:
         """Add a YouTube channel to the manager."""
         if not self.manager.config.get('api_key'):
             self.show_message("Please set YouTube API key in settings first!", Fore.RED)
-        link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE}")
+        link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE} or {Fore.YELLOW}handle{Fore.WHITE}")
         if link.strip():
             try:
                 channel_id = self.manager.channel_extractor.get_channel_id(link)
@@ -384,33 +384,23 @@ class Interface:
 
 
     def remove_channels(self) -> None:
-        """Remove one or more YouTube channels from the manager."""
-        while True:
-            print(f"{Fore.CYAN}{'#'.center(self.index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(self.name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
-            print(self.separator)
+        """Remove one YouTube channels from the manager."""
+        if self.manager.channels:
             for idx, channel_id in enumerate(self.channel_ids, 1):
                 channel_name = self.channel_map.get(channel_id, "Unknown")
-                print(f"{str(idx).center(2)} │ {channel_name.ljust(30)} │ {channel_id}")
-                    
-            print(f"\nPress {Fore.YELLOW}Enter{Fore.WHITE} to cancel or", end=" ")
-
-            choice = self.input_prompt(
-                f"{Fore.WHITE}enter {Fore.YELLOW}number{Fore.WHITE} to remove"
-            )
-
-            if not choice.strip():
-                break
-
+                print(f"{Fore.RED}{str(idx).center(2)}{Fore.WHITE} {channel_name.ljust(20)}", end="")
+                if idx % 4 == 0 or idx == len(self.channel_ids):
+                    print()
+                else:
+                    print("\t" * 2, end="")
+            choice = self.input_prompt(f"\n{Fore.WHITE}Enter {Fore.RED}number{Fore.WHITE} to remove")
             if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
-                removed = self.manager.channels.pop(int(choice) - 1)
+                self.manager.channels.pop(int(choice) - 1)
                 self.manager.save_channels()
-                print(f"{Fore.GREEN}Removed channel:{Fore.WHITE} {removed}")
-            else:
-                self.show_message("Invalid choice! Please enter a valid number.", Fore.RED)
-
-            if not self.manager.channels:
-                self.show_message("No more channels to remove!", Fore.YELLOW)
-                break
+            elif choice:
+                self.show_message("Invalid input.", Fore.RED)
+        else:
+            self.show_message("No channels to remove!", Fore.YELLOW)
 
     def days_filter(self) -> None:
         """Manage the filter for the number of days."""
