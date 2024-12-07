@@ -363,6 +363,7 @@ class Interface:
                 if channel_id not in self.manager.channels:
                     self.manager.channels.append(channel_id)
                     self.manager.save_channels()
+                    self.channel_map = self.manager.channel_extractor.get_channel_names(self.channel_ids)
                 else:
                     self.show_message("Channel already exists.", Fore.YELLOW)
             except Exception as e:
@@ -371,17 +372,13 @@ class Interface:
 
     def list_channels(self) -> None:
         """List all managed YouTube channels."""
-        if not self.manager.channels:
+        if self.manager.channels:
+            for idx, channel_id in enumerate(self.channel_ids, 1):
+                channel_name = self.channel_map.get(channel_id, "Unknown")
+                print(f"\t{channel_name}{Style.DIM}:{channel_id}{Style.RESET_ALL}".ljust(50), end="\n" if idx % 2 == 0 or idx == len(self.channel_ids) else "\t")
+            input(f"\n{Fore.WHITE}Press [{Fore.YELLOW}enter{Fore.WHITE}] to return.{Style.RESET_ALL}")
+        else:
             self.show_message("No channels added yet!", Fore.YELLOW)
-
-        print(f"{Fore.CYAN}{'#'.center(self.index_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel Name'.ljust(self.name_width)} {Fore.WHITE}│{Fore.CYAN} {'Channel ID'}{Style.RESET_ALL}")
-        print(self.separator)
-        for idx, channel_id in enumerate(self.channel_ids, 1):
-            channel_name = self.channel_map.get(channel_id, "Unknown")
-            print(f"{str(idx).center(self.index_width)} │ {channel_name.ljust(self.name_width)} │ {channel_id}")
-
-        input(f"\n{Fore.WHITE}Press {Fore.YELLOW}Enter{Fore.WHITE} to return{Style.RESET_ALL}")
-
 
     def remove_channels(self) -> None:
         """Remove one YouTube channels from the manager."""
@@ -393,7 +390,7 @@ class Interface:
                     print()
                 else:
                     print("\t" * 2, end="")
-            choice = self.input_prompt(f"\n{Fore.WHITE}Enter {Fore.RED}number{Fore.WHITE} to remove")
+            choice = self.input_prompt(f"\n{Fore.WHITE}Enter [{Fore.RED}number{Fore.WHITE}] to remove")
             if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                 self.manager.channels.pop(int(choice) - 1)
                 self.manager.save_channels()

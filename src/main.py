@@ -3,6 +3,7 @@ from utils.interface import Interface
 from utils.manager import YouTubeFeedManager
 import shutil
 import sys
+from time import sleep
 
 init(autoreset=True)
 
@@ -43,6 +44,7 @@ def main():
 
         if action:
             action()
+            sleep(0.3)
             if choice == "q":
                 break
         elif choice:
