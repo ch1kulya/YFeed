@@ -384,4 +384,10 @@ class Interface:
         pass #TODO youtube search
 
     def live_menu(self) -> None:
+        #temp logic
+        #from utils.player import MediaPlayer
+        #player = MediaPlayer
+        #stream_link = self.input_prompt(f"{Fore.WHITE}Enter stream {Fore.YELLOW}link{Fore.WHITE}")
+        #print(stream_link)
+        #player.play_video(player, stream_link)
         pass #TODO live streams menu

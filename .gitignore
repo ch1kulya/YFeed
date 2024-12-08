@@ -13,3 +13,5 @@ ffmpeg/
 mpv/
 binaries/
 *.lock
+.coverage
+*.xml
