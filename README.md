@@ -1,6 +1,13 @@
+<div align="center">
+   
 ## YFeed
-is a cli python application that fetches recent video data using YouTube Data API and RSS feeds.
+is a cli python application that fetches recent video data using YouTube Data API and RSS feeds. 
+
+[![CI](https://github.com/ch1kulya/YFeed/actions/workflows/ci.yml/badge.svg)](https://github.com/ch1kulya/YFeed/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ch1kulya/YFeed/branch/main/graph/badge.svg)](https://codecov.io/gh/ch1kulya/YFeed)
 ![332shots_so](https://github.com/user-attachments/assets/d85341a3-6b2e-4cc0-b799-5a833b825046)
+
+</div>
 
 ### Installation
 
