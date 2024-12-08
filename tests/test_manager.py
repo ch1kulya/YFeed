@@ -9,7 +9,9 @@ def manager():
         instance = MockExtractor.return_value
         instance.get_channel_names.return_value = {'UC_x5XG1OV2P6uZZ5FSM9Ttw': 'Google Developers'}
         instance.load_cache.return_value = {}
-        yield YouTubeFeedManager()
+        m = YouTubeFeedManager()
+        m.channel_extractor = instance
+        yield m
 
 def test_load_config_file_exists(manager):
     mock_config = {
