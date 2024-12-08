@@ -3,6 +3,7 @@ from utils.interface import Interface
 from utils.manager import YouTubeFeedManager
 import shutil
 import sys
+from time import sleep
 
 init(autoreset=True)
 
@@ -24,18 +25,29 @@ def main():
     interface = Interface(manager)
     interface.greet()
 
+    actions = {
+        "1": interface.videos_menu,
+        "2": interface.search_menu,
+        "3": interface.live_menu,
+        "4": interface.add_channel,
+        "5": interface.list_channels,
+        "6": interface.remove_channels,
+        "7": interface.days_filter,
+        "8": interface.length_filter,
+        "9": interface.manage_api,
+        "q": interface.shut_down
+    }
+
     while True:
         choice = interface.main_menu()
-        if choice == "1":
-            interface.videos_menu()
-        elif choice == "2":
-            interface.channels_menu()
-        elif choice == "3":
-            interface.settings_menu()
-        elif choice == "4":
-            interface.shut_down()
-            break
-        else:
+        action = actions.get(choice)
+
+        if action:
+            action()
+            sleep(0.3)
+            if choice == "q":
+                break
+        elif choice:
             interface.show_message("Invalid choice!", Fore.RED)
 
 if __name__ == "__main__":

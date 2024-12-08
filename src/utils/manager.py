@@ -1,11 +1,14 @@
 import os
 import json
 import re
-from colorama import Fore
+import feedparser
+import requests
+import concurrent.futures
+from colorama import Fore, Style
 from datetime import datetime
 from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
-from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE
+from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE, TIMEOUT_SECONDS
 from utils.extractor import YouTubeChannelExtractor
 
 class YouTubeFeedManager:
@@ -152,6 +155,45 @@ class YouTubeFeedManager:
         minutes = int(match.group(2)) if match.group(2) else 0
         seconds = int(match.group(3)) if match.group(3) else 0
         return days * 86400 + hours * 3600 + minutes * 60 + seconds
+    
+    def parse_feed(self, channel_id):
+        """Fetch and parse the YouTube feed for a given channel ID with retries.
+
+        Args:
+            channel_id (str): The YouTube channel ID to fetch the feed for.
+
+        Returns:
+            feedparser.FeedParserDict or None: The parsed feed data, or None if fetching failed after retries.
+        """
+        url = f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
+        for attempt in range(2):
+            try:
+                response = requests.get(url, timeout=TIMEOUT_SECONDS)
+                feed = feedparser.parse(response.content)
+                return feed
+            except requests.exceptions.Timeout:
+                if attempt == 0:
+                    print(f"{Fore.RED}Timeout{Fore.WHITE} on first attempt for channel {self.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}.{Style.RESET_ALL} Retrying...")
+                else:
+                    print(f"{Fore.RED}Timeout{Fore.WHITE} on second attempt for channel {self.channel_extractor.get_channel_names([channel_id]).get(channel_id, "Unknown")}.{Style.RESET_ALL} Giving up.")
+                if attempt == 1:
+                    return None
+            except Exception as e:
+                print(f"{Fore.RED}Error parsing {channel_id}: {Fore.WHITE}{e}{Style.RESET_ALL}")
+                return None
+
+    def parse_feeds(self, channel_ids):
+        """Fetch and parse YouTube feeds concurrently for a list of channel IDs.
+
+        Args:
+            channel_ids (list): A list of YouTube channel IDs.
+
+        Returns:
+            list: A list of parsed feed data for each channel ID.
+        """
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            results = list(executor.map(self.parse_feed, channel_ids))
+        return results
 
     def fetch_videos(self, channel_id: str, feed) -> List[Dict]:
         """Fetch videos from a YouTube channel feed, applying filters and caching.
