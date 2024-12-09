@@ -50,7 +50,7 @@ class Interface:
         for line in gradient_art.split('\n'):
             print(self.center_text(line))
         print("\n")
-        sleep(1.5)
+        sleep(1)
         os.system("cls" if os.name == "nt" else "clear")
                 
     def center_text(self, text):
@@ -259,7 +259,7 @@ class Interface:
                     channel_name = channel_name[:channel_width-3] + "..."
                     
                 cutoff_index = len(title)
-                for char in ["|", "[", "(", ".", "@"]:
+                for char in ["|", "[", "(", ".", "@", ":"]:
                     index = title.find(char)
                     if 0 <= index < cutoff_index:
                         cutoff_index = index
