@@ -8,6 +8,10 @@ from time import sleep
 init(autoreset=True)
 
 def check_dependencies():
+    """Checks if required binaries are installed and available in the system's PATH.
+
+    If any dependency is missing, the program exits with an error message.
+    """
     for dependency in ["ffmpeg", "mpv"]:
         if not shutil.which(dependency):
             print(f"Error: {dependency} is not installed or not in PATH.")
