@@ -25,7 +25,7 @@ ffmpeg -version >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     echo FFmpeg is not installed.
     echo Downloading and installing FFmpeg...
-    powershell -Command "Invoke-WebRequest -Uri https://github.com/ch1kulya/YFeed/releases/download/v1.0.0/ffmpeg-2024-11-28.zip -OutFile %INSTALL_PATH%\ffmpeg.zip"
+    powershell -Command "Invoke-WebRequest -Uri https://github.com/ch1kulya/YFeed/releases/download/binaries/ffmpeg-2024-11-28.zip -OutFile %INSTALL_PATH%\ffmpeg.zip"
     powershell -Command "Expand-Archive -Force -Path %INSTALL_PATH%\ffmpeg.zip -DestinationPath %INSTALL_PATH%\ffmpeg"
     set "NEW_PATH=%NEW_PATH%;%INSTALL_PATH%\ffmpeg\bin"
     del /q "%INSTALL_PATH%\ffmpeg.zip"
@@ -40,7 +40,7 @@ mpv --version >nul 2>&1
 IF %ERRORLEVEL% NEQ 0 (
     echo mpv is not installed.
     echo Downloading and installing mpv...
-    powershell -Command "Invoke-WebRequest -Uri https://github.com/ch1kulya/YFeed/releases/download/v1.0.0/mpv-0.39.0-x86_64.zip -OutFile %INSTALL_PATH%\mpv.zip"
+    powershell -Command "Invoke-WebRequest -Uri https://github.com/ch1kulya/YFeed/releases/download/binaries/mpv-0.39.0-x86_64.zip -OutFile %INSTALL_PATH%\mpv.zip"
     powershell -Command "Expand-Archive -Force -Path %INSTALL_PATH%\mpv.zip -DestinationPath %INSTALL_PATH%\mpv"
     set "NEW_PATH=%NEW_PATH%;%INSTALL_PATH%\mpv"
     del /q "%INSTALL_PATH%\mpv.zip"

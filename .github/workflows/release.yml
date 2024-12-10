@@ -1,0 +1,30 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create release archive
+        run: |
+          zip -r YFeed.zip . \
+            -x ".github/*" \
+            -x "tests/*" \
+            -x ".gitignore" \
+            -x "README.md" \
+            -x "pytest.ini"
+
+      - name: Create release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref }}
+          name: "Release ${{ github.ref }}"
+          artifacts: "YFeed.zip"
+          allowUpdates: true
