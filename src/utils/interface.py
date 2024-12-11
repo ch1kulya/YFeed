@@ -15,7 +15,7 @@ def getch():
     """Get single symbol from keyboard without input."""
     try:
         # Windows
-        return msvcrt.getch().decode()
+        return msvcrt.getch().decode('utf-8', errors='ignore')
     except ImportError:
         # TODO Linux/Mac Support
         pass
@@ -183,7 +183,7 @@ class Interface:
         self.draw_logo("Home")
         options = [
             (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}4{Fore.WHITE}. Subscribe            {Fore.YELLOW}7{Fore.WHITE}. Days filter  "),
-            (f"{Style.DIM}{Fore.YELLOW}2{Fore.WHITE}. Search{Style.NORMAL}               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
+            (f"{Fore.YELLOW}2{Fore.WHITE}. Search               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
             (f"{Style.DIM}{Fore.YELLOW}3{Fore.WHITE}. Live streams{Style.NORMAL}         {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
         ]
     
@@ -227,10 +227,9 @@ class Interface:
         videos = [video for video in videos if video["published"] > cutoff_date]
     
         index_width = len(str(len(videos)))
-        time_width = 10
-        channel_width = 25
+        channel_width, time_width = 25, 10
         remaining_width = self.terminal_width - (index_width + time_width + channel_width)
-        title_width = int(remaining_width * 0.9)
+        title_width = int(remaining_width * 0.85)
         separator = "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
         header = (
             f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
@@ -247,28 +246,24 @@ class Interface:
             self.draw_logo("Video List")
             print(header)
             print(separator)
-    
             for idx, video in enumerate(videos):
                 title = video["title"]
                 published = video["published"]
                 delta = datetime.now(published.tzinfo) - published
                 time_ago = self.format_time_ago(delta)
-    
                 channel_name = video.get("author", "Unknown Channel")
                 if len(channel_name) > channel_width - 3:
                     channel_name = channel_name[:channel_width-3] + "..."
-                    
                 cutoff_index = len(title)
-                for char in ["|", "[", "(", ".", "@", ":"]:
-                    index = title.find(char)
+                for char in ["|", "[", "(", ".", "@", ":", "•", "+", "?"]:
+                    index, addition = title.find(char), ""
                     if 0 <= index < cutoff_index:
                         cutoff_index = index
-                            
-                title = " ".join(title[:cutoff_index].split())
-                            
+                        if char == "?":
+                            addition = "?"
+                title = " ".join(title[:cutoff_index].split()) + addition
                 if len(title) > title_width - 3:
-                    title = title[:title_width-3] + "..."
-    
+                    title = title[:title_width - 3] + "..."
                 if video["id"] in self.manager.watched:
                     color = Fore.LIGHTBLACK_EX
                     color_time = Fore.LIGHTBLACK_EX
@@ -296,13 +291,7 @@ class Interface:
                 video = videos[int(choice) - 1]
                 self.manager.watched.add(video["id"])
                 self.manager.save_watched()
-                if os.name == "nt":  # Windows
-                    if shutil.which("wt.exe"):
-                        subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{video["link"]}"', shell=True)
-                    else:
-                        subprocess.Popen(f'start cmd /C python src/instance.py "{video["link"]}"', shell=True)
-    
-                # TODO: Linux/Mac support
+                self.manager.open_video_instance(video["link"])
 
     def add_channel(self) -> None:
         """Add a YouTube channel to the manager."""
@@ -381,7 +370,60 @@ class Interface:
         #TODO api_key validation
     
     def search_menu(self) -> None:
-        pass #TODO youtube search
+        """Displays the search menu, prompts the user for a search query, displays results,
+        and allows the user to select a video to watch.
+        """
+        self.draw_logo("Search")
+        query = self.input_prompt(f"{Fore.WHITE}Enter search {Fore.YELLOW}query{Fore.WHITE}")
+        index_width, channel_width, time_width = 1, 25, 15
+        remaining_width = self.terminal_width - (index_width + time_width + channel_width)
+        title_width = int(remaining_width * 0.85)
+        separator = (
+            "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
+        )
+        header = (
+            f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Title'.ljust(title_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Duration'.ljust(time_width)}{Style.RESET_ALL}"
+        )
+        if query.strip():
+            self.draw_logo("Search")
+            results = self.manager.search_youtube_videos(query)
+            if not results:
+                print(Fore.YELLOW + "No videos were found matching your filters for this search query.")
+                sleep(1)
+                return None
+            print(header)
+            print(separator)
+            for idx, video in enumerate(results, start=1):
+                title = video["title"]
+                channel_name = video.get("author", "Unknown Channel")
+                if len(channel_name) > channel_width - 3:
+                    channel_name = channel_name[:channel_width - 3] + "..."
+                duration = f"{round(video['duration'] / 60)} min"
+                cutoff_index = len(title)
+                for char in ["|", "[", "(", ".", "@", ":", "•", "+", "?"]:
+                    index, addition = title.find(char), ""
+                    if 0 <= index < cutoff_index:
+                        cutoff_index = index
+                        if char == "?":
+                            addition = "?"
+                title = " ".join(title[:cutoff_index].split()) + addition
+                if len(title) > title_width - 3:
+                    title = title[:title_width - 3] + "..."
+                print(
+                    f"{str(idx).rjust(index_width)} │ "
+                    f"{title.ljust(title_width)} {Fore.WHITE}│ "
+                    f"{channel_name.ljust(channel_width)} {Fore.WHITE}│ "
+                    f"{duration.ljust(time_width)}{Style.RESET_ALL}"
+                )
+            choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+            if choice.isdigit() and 1 <= int(choice) <= len(results):
+                video = results[int(choice) - 1]
+                self.manager.watched.add(video["id"])
+                self.manager.save_watched()
+                self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
 
     def live_menu(self) -> None:
         #temp logic

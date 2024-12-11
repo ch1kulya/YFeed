@@ -1,6 +1,8 @@
 import os
 import json
 import re
+import shutil
+import subprocess
 import feedparser
 import requests
 import concurrent.futures
@@ -333,3 +335,61 @@ class YouTubeFeedManager:
         except Exception as e:
             print(Fore.RED + f"Error fetching videos for channel {channel_id}: {str(e)}")
             return []
+
+    def search_youtube_videos(self, search_query: str) -> List[Dict]:
+        """
+        Search YouTube for videos matching the query and return the top 8 videos with their details.
+
+        Args:
+            search_query (str): The search term to query YouTube.
+
+        Returns:
+            List[Dict]: A list of dictionaries containing video title, description, and duration.
+        """
+        try:
+            search_response = self.channel_extractor.youtube.search().list(
+                q=search_query,
+                part='id,snippet',
+                type='video',
+                maxResults=8
+            ).execute()
+            video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
+            if not video_ids:
+                print(Fore.YELLOW + "No videos found for the given search query.")
+                return []
+            videos_response = self.channel_extractor.youtube.videos().list(
+                part='snippet,contentDetails',
+                id=','.join(video_ids)
+            ).execute()
+            videos = []
+            for item in videos_response.get('items', []):
+                title = item['snippet']['title']
+                channel_title = item['snippet']['channelTitle']
+                iso_duration = item['contentDetails']['duration']
+                duration = self.iso_duration_to_seconds(iso_duration)
+                live_broadcast_content = item['snippet'].get('liveBroadcastContent')
+                if live_broadcast_content in ["live", "upcoming"]:
+                    continue
+                if (duration < self.config.get("min_video_length", 2) * 60) or (duration > MAX_SECONDS):
+                    continue
+                videos.append({
+                    "id": item['id'],
+                    "title": self.remove_emojis(title),
+                    "duration": duration,
+                    "author": channel_title
+                })
+            return videos
+        except HttpError as e:
+            print(Fore.RED + f"An HTTP error occurred: {e}")
+            return []
+        except Exception as e:
+            print(Fore.RED + f"An error occurred: {e}")
+            return []
+
+    def open_video_instance(self, link: str) -> None:
+        if os.name == "nt":  # Windows
+            if shutil.which("wt.exe"):
+                subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{link}"', shell=True)
+            else:
+                subprocess.Popen(f'start cmd /C python src/instance.py "{link}"', shell=True)
+        # TODO: Linux/Mac support
