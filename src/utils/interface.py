@@ -394,7 +394,7 @@ class Interface:
                 return None
             print(header)
             print(separator)
-            for idx, video in enumerate(results, start=1):
+            for idx, video in enumerate(results[:8], start=1):
                 title = video["title"]
                 channel_name = video.get("author", "Unknown Channel")
                 if len(channel_name) > channel_width - 3:

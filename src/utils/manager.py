@@ -341,7 +341,7 @@ class FeedManager:
                 q=search_query,
                 part='id,snippet',
                 type='video',
-                maxResults=8
+                maxResults=16
             ).execute()
             video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
             if not video_ids:
@@ -377,6 +377,12 @@ class FeedManager:
             return []
 
     def open_video_instance(self, link: str) -> None:
+        """
+        Open a subprocess with the media loader instance.
+
+        Args:
+            link (str): A link to the YouTube video.
+        """
         if os.name == "nt":  # Windows
             if shutil.which("wt.exe"):
                 subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{link}"', shell=True)
