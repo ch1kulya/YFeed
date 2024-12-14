@@ -5,14 +5,14 @@ from time import sleep
 from yt_dlp import YoutubeDL
 from colorama import Fore, Style
 from utils.interface import Interface
-from utils.manager import YouTubeFeedManager
+from utils.manager import FeedManager
 
 class MediaPlayer:
     """Handles video playback functionality, including downloading and playing videos using external tools."""
 
     def __init__(self):
-        """Initialize the MediaPlayer with a YouTubeFeedManager and an Interface instance."""
-        self.manager = YouTubeFeedManager()
+        """Initialize the MediaPlayer with a FeedManager and an Interface instance."""
+        self.manager = FeedManager()
         self.interface = Interface(self.manager)
     
     def watch_video(self, url):

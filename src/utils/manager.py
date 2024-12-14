@@ -11,20 +11,19 @@ from datetime import datetime
 from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
 from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE, TIMEOUT_SECONDS
-from utils.extractor import YouTubeChannelExtractor
+from utils.extractor import Extractor
 
-class YouTubeFeedManager:
-    """Manages YouTube feed operations, including loading configurations, channels,
-    watched videos, and fetching video data from YouTube channels."""
+class FeedManager:
+    """Manages feed operations, including loading configurations, channels,
+    watched videos, and fetching video data from channels."""
 
     def __init__(self):
-        """Initialize the YouTubeFeedManager instance.
+        """Initialize the FeedManager instance.
 
         This method loads the configuration, channels, and watched videos from their
-        respective files. It also initializes the YouTubeChannelExtractor if an API key
+        respective files. It also initializes the Extractor if an API key
         is provided in the configuration.
         """
-        # Initialize the feed manager
         self.config = self.load_config()
         self.channels = self.load_channels()
         self.watched = self.load_watched()
@@ -32,7 +31,7 @@ class YouTubeFeedManager:
         
         # Initialize API if key exists
         if self.config.get('api_key'):
-            self.channel_extractor = YouTubeChannelExtractor(self.config['api_key'])
+            self.channel_extractor = Extractor(self.config['api_key'])
 
     @staticmethod
     def load_config() -> Dict:

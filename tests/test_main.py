@@ -23,7 +23,7 @@ def mock_interface():
 
 @pytest.fixture
 def mock_manager():
-    with patch('main.YouTubeFeedManager') as mock_manager_cls:
+    with patch('main.FeedManager') as mock_manager_cls:
         instance = MagicMock()
         mock_manager_cls.return_value = instance
         yield instance

@@ -4,7 +4,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from utils.settings import NAMES_FILE
 
-class YouTubeChannelExtractor:
+class Extractor:
     """Extracts YouTube channel information using the YouTube Data API.
 
     This class provides methods to retrieve channel IDs from YouTube URLs,
@@ -13,7 +13,7 @@ class YouTubeChannelExtractor:
     """
 
     def __init__(self, api_key: str):
-        """Initialize the YouTubeChannelExtractor with a YouTube Data API key.
+        """Initialize the Extractor with a YouTube Data API key.
 
         Args:
             api_key (str): The YouTube Data API key for making API requests.

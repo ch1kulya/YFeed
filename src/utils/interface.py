@@ -1,13 +1,11 @@
 import os
 import glob
-import shutil
 import pyfiglet
 from time import sleep, time
 from datetime import datetime, timedelta
 from colorama import Fore, Style
-from utils.manager import YouTubeFeedManager
-from utils.extractor import YouTubeChannelExtractor
-import subprocess
+from utils.manager import FeedManager
+from utils.extractor import Extractor
 import re
 import msvcrt
 
@@ -23,11 +21,11 @@ def getch():
 class Interface:
     """Manages the user interface for the YFeed application."""
 
-    def __init__(self, manager: YouTubeFeedManager):
-        """Initialize the Interface with a YouTubeFeedManager instance.
+    def __init__(self, manager: FeedManager):
+        """Initialize the Interface with a FeedManager instance.
 
         Args:
-            manager (YouTubeFeedManager): The manager instance to handle YouTube feeds.
+            manager (FeedManager): The manager instance to handle YouTube feeds.
         """
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
@@ -257,10 +255,10 @@ class Interface:
                 cutoff_index = len(title)
                 for char in ["|", "[", "(", ".", "@", ":", "•", "+", "?"]:
                     index, addition = title.find(char), ""
-                    if 0 <= index < cutoff_index:
+                    if 6 <= index < cutoff_index:
                         cutoff_index = index
-                        if char == "?":
-                            addition = "?"
+                        if char in [".", "?"]:
+                            addition = char
                 title = " ".join(title[:cutoff_index].split()) + addition
                 if len(title) > title_width - 3:
                     title = title[:title_width - 3] + "..."
@@ -364,7 +362,7 @@ class Interface:
         if api_key.strip():
             self.manager.config["api_key"] = api_key.strip()
             self.manager.save_config()
-            self.manager.channel_extractor = YouTubeChannelExtractor(api_key.strip())
+            self.manager.channel_extractor = Extractor(api_key.strip())
             self.show_message("API Key updated!", Fore.GREEN)
         #elif api_key:
         #TODO api_key validation
@@ -405,10 +403,10 @@ class Interface:
                 cutoff_index = len(title)
                 for char in ["|", "[", "(", ".", "@", ":", "•", "+", "?"]:
                     index, addition = title.find(char), ""
-                    if 0 <= index < cutoff_index:
+                    if 6 <= index < cutoff_index:
                         cutoff_index = index
-                        if char == "?":
-                            addition = "?"
+                        if char in [".", "?"]:
+                            addition = char
                 title = " ".join(title[:cutoff_index].split()) + addition
                 if len(title) > title_width - 3:
                     title = title[:title_width - 3] + "..."

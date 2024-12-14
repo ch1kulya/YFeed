@@ -3,17 +3,17 @@ import re
 import pytest
 from unittest.mock import patch, mock_open, MagicMock
 import requests
-from utils.manager import YouTubeFeedManager
+from utils.manager import FeedManager
 from utils.settings import MAX_SECONDS
 
 @pytest.fixture
 def manager():
-    with patch('utils.manager.YouTubeChannelExtractor') as MockExtractor:
+    with patch('utils.manager.Extractor') as MockExtractor:
         instance = MockExtractor.return_value
         instance.get_channel_names.return_value = {'UC_x5XG1OV2P6uZZ5FSM9Ttw': 'Google Developers'}
         instance.load_cache.return_value = {}
         instance.save_cache.return_value = None
-        m = YouTubeFeedManager()
+        m = FeedManager()
         m.channel_extractor = instance
         yield m
 
@@ -34,17 +34,17 @@ def test_load_config_file_not_exists(manager):
 
 def test_remove_emojis():
     text = "Hello😊 World🚀!"
-    cleaned_text = YouTubeFeedManager.remove_emojis(text)
+    cleaned_text = FeedManager.remove_emojis(text)
     assert cleaned_text == "Hello world!"
 
 def test_iso_duration_to_seconds_valid():
     duration = "PT1H30M15S"
-    seconds = YouTubeFeedManager.iso_duration_to_seconds(duration)
+    seconds = FeedManager.iso_duration_to_seconds(duration)
     assert seconds == 5415
 
 def test_iso_duration_to_seconds_invalid(capfd):
     duration = "INVALID_DURATION"
-    seconds = YouTubeFeedManager.iso_duration_to_seconds(duration)
+    seconds = FeedManager.iso_duration_to_seconds(duration)
     captured = capfd.readouterr()
     assert seconds == 0
     assert "Invalid duration format" in captured.out

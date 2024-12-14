@@ -1,6 +1,6 @@
 from colorama import Fore, init
 from utils.interface import Interface
-from utils.manager import YouTubeFeedManager
+from utils.manager import FeedManager
 import shutil
 import sys
 from time import sleep
@@ -20,12 +20,12 @@ def check_dependencies():
 def main():
     """Main entry point for the YFeed application.
 
-    This function initializes the YouTubeFeedManager and Interface, displays a greeting,
+    This function initializes the FeedManager and Interface, displays a greeting,
     and enters the main application loop where it responds to user input to navigate
     through the application's menus.
     """
     check_dependencies()
-    manager = YouTubeFeedManager()
+    manager = FeedManager()
     interface = Interface(manager)
     interface.greet()
 
