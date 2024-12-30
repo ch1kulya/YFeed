@@ -7,16 +7,26 @@ from colorama import Fore, Style
 from utils.manager import FeedManager
 from utils.extractor import Extractor
 import re
-import msvcrt
+import sys
 
 def getch():
     """Get single symbol from keyboard without input."""
     try:
+        import msvcrt
         # Windows
         return msvcrt.getch().decode('utf-8', errors='ignore')
     except ImportError:
-        # TODO Linux/Mac Support
-        pass
+        import tty
+        import termios
+        # Linux/MacOS
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+        try:
+            tty.setraw(fd)
+            ch = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        return ch
 
 class Interface:
     """Manages the user interface for the YFeed application."""
