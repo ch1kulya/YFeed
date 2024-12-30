@@ -97,7 +97,7 @@ class MediaPlayer:
         command = (
             f"mpv --hwdec=auto --hr-seek=always --ontop --autofit=40% --volume=50 "
             f"--cache=yes --cache-secs=20 --no-border "
-            f"--osc=no --window-corners=round {video_file}"
+            f"--osc=no --window-corners=round --vo=gpu {video_file}"
         )
 
         try:
