@@ -12,6 +12,7 @@ from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
 from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE, TIMEOUT_SECONDS
 from utils.extractor import Extractor
+import sys
 
 class FeedManager:
     """Manages feed operations, including loading configurations, channels,
@@ -385,7 +386,28 @@ class FeedManager:
         """
         if os.name == "nt":  # Windows
             if shutil.which("wt.exe"):
-                subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{link}"', shell=True)
+                subprocess.Popen(f'wt.exe -w 0 new-tab -- python {sys.executable} src/instance.py "{link}"', shell=True)
             else:
-                subprocess.Popen(f'start cmd /C python src/instance.py "{link}"', shell=True)
-        # TODO: Linux/Mac support
+                subprocess.Popen(f'start cmd /C python {sys.executable} src/instance.py "{link}"', shell=True)
+        elif os.name == "posix": # Linux and MacOS
+            if sys.platform == "darwin": #MacOS
+                pass
+                # subprocess.Popen(f'open -a Terminal python {sys.executable} src/instance.py "{link}"', shell=True) 
+                # TODO MacOS support
+            else: #Linux
+                try:
+                    if shutil.which("x-terminal-emulator"):
+                        subprocess.Popen(f'x-terminal-emulator -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+                    elif shutil.which("gnome-terminal"):
+                        subprocess.Popen(f'gnome-terminal -- python {sys.executable} src/instance.py "{link}"', shell=True)
+                    elif shutil.which("konsole"):
+                        subprocess.Popen(f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+                    else:
+                        subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True)
+                except Exception as e:
+                    if "DISPLAY not set" in str(e):
+                        print(f"Error: DISPLAY not set! Cannot open terminal. Starting process without terminal. Full error: {e}")
+                        subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True)
+                    else:
+                        print(f"Error starting terminal on Linux: {e}")
+                        subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True)
