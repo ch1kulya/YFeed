@@ -104,8 +104,18 @@ class MediaPlayer:
         if os.name == 'nt':
             mpv_command.append("--window-corners=round")
         elif os.name == 'posix':
-            if os.environ.get('DISPLAY') is None:
-                mpv_command.append("--vo=tct")
+            while True:
+                choice = input(
+                "Select mpv mode for Linux:\n1) GUI\n2) Text-based (--vo=tct)\n"
+                "Enter 1 or 2:"
+            )
+                if choice == '1':
+                    break
+                elif choice == '2':
+                    mpv_command.append("--vo=tct")
+                    break
+                else:
+                    print("Invalid input. Please enter 1 or 2.")
         mpv_command.append(video_file)
         try:
             subprocess.Popen(
