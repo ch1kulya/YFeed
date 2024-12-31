@@ -394,29 +394,11 @@ class FeedManager:
                 pass
                 # subprocess.Popen(f'open -a Terminal python {sys.executable} src/instance.py "{link}"', shell=True) 
                 # TODO MacOS support
-            else: #Linux
-                try:
-                    terminal_command = None
-                    if shutil.which("x-terminal-emulator"):
-                        terminal_command = f'x-terminal-emulator -e "python {sys.executable} src/instance.py \\"{link}\\""'
-                    elif shutil.which("gnome-terminal"):
-                        terminal_command = f'gnome-terminal -- python {sys.executable} src/instance.py "{link}"'
-                    elif shutil.which("konsole"):
-                        terminal_command = f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""'
-                    if terminal_command:
-                        process = subprocess.Popen(terminal_command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                        stdout, stderr = process.communicate()
-                        if stderr:
-                            if "DISPLAY not set" in stderr.decode():
-                                raise Exception ("DISPLAY not set")
-                            else:
-                                raise Exception (f"Error in starting process: {stderr.decode()}")
-                    else:
-                        subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True, start_new_session=True)
-                except Exception as e:
-                    if "DISPLAY not set" in str(e):
-                        print(f"Error: DISPLAY not set! Cannot open terminal. Starting process without terminal. Full error: {e}")
-                        subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True, start_new_session=True)
-                    else:
-                        print(f"Error starting terminal: {e}")
-                        subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True, start_new_session=True)
+            elif shutil.which("x-terminal-emulator") and "DISPLAY" in os.environ:
+                subprocess.Popen(f'x-terminal-emulator -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+            elif shutil.which("gnome-terminal") and "DISPLAY" in os.environ:
+                subprocess.Popen(f'gnome-terminal -- python {sys.executable} src/instance.py "{link}"', shell=True)
+            elif shutil.which("konsole") and "DISPLAY" in os.environ:
+                subprocess.Popen(f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+            else:
+                subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True) #Fallback without terminal support
