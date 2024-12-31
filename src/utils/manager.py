@@ -405,7 +405,7 @@ class FeedManager:
                         terminal_command = f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""'
                     if terminal_command:
                         process = subprocess.Popen(terminal_command, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                        _, stderr = process.communicate()
+                        stdout, stderr = process.communicate()
                         if stderr:
                             if "DISPLAY not set" in stderr.decode():
                                 raise Exception ("DISPLAY not set")
