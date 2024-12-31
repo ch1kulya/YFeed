@@ -12,7 +12,6 @@ from typing import Dict, List, Set
 from googleapiclient.errors import HttpError
 from utils.settings import CONFIG_FILE, CHANNELS_FILE, WATCHED_FILE, MAX_SECONDS, CACHE_FILE, TIMEOUT_SECONDS
 from utils.extractor import Extractor
-import sys
 
 class FeedManager:
     """Manages feed operations, including loading configurations, channels,
@@ -390,15 +389,4 @@ class FeedManager:
             else:
                 subprocess.Popen(f'start cmd /C python src/instance.py "{link}"', shell=True)
         elif os.name == "posix": # Linux and MacOS
-            if sys.platform == "darwin": #MacOS
-                pass
-                # subprocess.Popen(f'open -a Terminal python src/instance.py "{link}"', shell=True) 
-                # TODO MacOS support
-            #elif shutil.which("x-terminal-emulator"):
-                #subprocess.Popen(f'x-terminal-emulator -e "python src/instance.py \\"{link}\\""', shell=True)
-            #elif shutil.which("gnome-terminal"):
-                #subprocess.Popen(f'gnome-terminal -- python src/instance.py "{link}"', shell=True)
-            #elif shutil.which("konsole"):
-                #subprocess.Popen(f'konsole -e "python src/instance.py \\"{link}\\""', shell=True)
-            else:
-                subprocess.Popen(f'python src/instance.py "{link}"', shell=True) #Fallback without terminal support
+            subprocess.Popen(f'python src/instance.py "{link}"', shell=True)

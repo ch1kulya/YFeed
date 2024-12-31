@@ -105,22 +105,7 @@ class MediaPlayer:
         if os.name == 'nt':
             mpv_command.append("--window-corners=round")
         elif os.name == 'posix':
-            while True:
-                choice = input(
-                "Select mpv mode:\n1) Normal\n2) Text-based (tct)\n2) Text-based (caca)\n"
-                "Enter a number:"
-            )
-                if choice == '1':
-                    mpv_command.append("--profile=sw-fast")
-                    break
-                elif choice == '2':
-                    mpv_command.append("--vo=tct --profile=sw-fast")
-                    break
-                elif choice == '3':
-                    mpv_command.append("--vo=caca --profile=sw-fast")
-                    break
-                else:
-                    print("Invalid input. Please enter 1 or 2.")
+            mpv_command.append("--profile=sw-fast")
         mpv_command.append(video_file)
         try:
             subprocess.Popen(
