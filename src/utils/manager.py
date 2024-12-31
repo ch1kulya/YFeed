@@ -394,11 +394,11 @@ class FeedManager:
                 pass
                 # subprocess.Popen(f'open -a Terminal python {sys.executable} src/instance.py "{link}"', shell=True) 
                 # TODO MacOS support
-            elif shutil.which("x-terminal-emulator") and "DISPLAY" in os.environ:
-                subprocess.Popen(f'x-terminal-emulator -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
-            elif shutil.which("gnome-terminal") and "DISPLAY" in os.environ:
-                subprocess.Popen(f'gnome-terminal -- python {sys.executable} src/instance.py "{link}"', shell=True)
-            elif shutil.which("konsole") and "DISPLAY" in os.environ:
-                subprocess.Popen(f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+            #elif shutil.which("x-terminal-emulator"):
+                #subprocess.Popen(f'x-terminal-emulator -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+            #elif shutil.which("gnome-terminal"):
+                #subprocess.Popen(f'gnome-terminal -- python {sys.executable} src/instance.py "{link}"', shell=True)
+            #elif shutil.which("konsole"):
+                #subprocess.Popen(f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
             else:
                 subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True) #Fallback without terminal support
