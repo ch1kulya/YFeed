@@ -5,6 +5,7 @@ from yt_dlp import YoutubeDL
 from colorama import Fore, Style
 from utils.interface import Interface
 from utils.manager import FeedManager
+import shutil
 
 class MediaPlayer:
     """Handles video playback functionality, including downloading and playing videos using external tools."""
