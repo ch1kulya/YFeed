@@ -106,8 +106,8 @@ class MediaPlayer:
         elif os.name == 'posix':
             while True:
                 choice = input(
-                "Select mpv mode for Linux:\n1) GUI\n2) Text-based (--vo=tct)\n"
-                "Enter 1 or 2:"
+                "Select mpv mode:\n1) Normal\n2) Text-based\n"
+                "Enter a number:"
             )
                 if choice == '1':
                     break
@@ -119,7 +119,7 @@ class MediaPlayer:
         mpv_command.append(video_file)
         try:
             subprocess.Popen(
-                mpv_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True
+                mpv_command, stdout=None, stderr=None
             )
             print("Video playback started successfully.")
         except FileNotFoundError:
