@@ -386,19 +386,19 @@ class FeedManager:
         """
         if os.name == "nt":  # Windows
             if shutil.which("wt.exe"):
-                subprocess.Popen(f'wt.exe -w 0 new-tab -- python {sys.executable} src/instance.py "{link}"', shell=True)
+                subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{link}"', shell=True)
             else:
-                subprocess.Popen(f'start cmd /C python {sys.executable} src/instance.py "{link}"', shell=True)
+                subprocess.Popen(f'start cmd /C python src/instance.py "{link}"', shell=True)
         elif os.name == "posix": # Linux and MacOS
             if sys.platform == "darwin": #MacOS
                 pass
-                # subprocess.Popen(f'open -a Terminal python {sys.executable} src/instance.py "{link}"', shell=True) 
+                # subprocess.Popen(f'open -a Terminal python src/instance.py "{link}"', shell=True) 
                 # TODO MacOS support
             #elif shutil.which("x-terminal-emulator"):
-                #subprocess.Popen(f'x-terminal-emulator -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+                #subprocess.Popen(f'x-terminal-emulator -e "python src/instance.py \\"{link}\\""', shell=True)
             #elif shutil.which("gnome-terminal"):
-                #subprocess.Popen(f'gnome-terminal -- python {sys.executable} src/instance.py "{link}"', shell=True)
+                #subprocess.Popen(f'gnome-terminal -- python src/instance.py "{link}"', shell=True)
             #elif shutil.which("konsole"):
-                #subprocess.Popen(f'konsole -e "python {sys.executable} src/instance.py \\"{link}\\""', shell=True)
+                #subprocess.Popen(f'konsole -e "python src/instance.py \\"{link}\\""', shell=True)
             else:
-                subprocess.Popen(f'python {sys.executable} src/instance.py "{link}"', shell=True) #Fallback without terminal support
+                subprocess.Popen(f'python src/instance.py "{link}"', shell=True) #Fallback without terminal support
