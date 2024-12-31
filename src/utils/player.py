@@ -1,5 +1,4 @@
 import os
-import webbrowser
 import subprocess
 from time import sleep
 from yt_dlp import YoutubeDL
@@ -81,9 +80,7 @@ class MediaPlayer:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
                 print(Style.DIM + "Temporary file removed.")
-            print(Style.DIM + "Playing in browser.")
             sleep(1)
-            webbrowser.open(url)
                 
     def play_video(self, video_file):
         """Play the specified video file using the mpv media player with predefined settings.
@@ -107,9 +104,8 @@ class MediaPlayer:
         if os.name == 'nt':
             mpv_command.append("--window-corners=round")
         elif os.name == 'posix':
-            if not subprocess.Popen(["command", "-v", "xdotool"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).wait() == 0:
+            if shutil.which('xdotool') is None:
                 mpv_command.append("--vo=tct")
-                print ("--vo=tct for headless or other cases") 
         mpv_command.append(video_file)
         try:
             subprocess.Popen(
