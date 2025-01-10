@@ -61,3 +61,4 @@ if (-not (Test-Path $LockFile)) {
 
 python src\main.py
 Read-Host -Prompt "Press any key to continue . . ."
+exit 1

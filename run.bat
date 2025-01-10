@@ -58,3 +58,4 @@ if not exist "%LOCKFILE%" (
 
 python src\main.py
 pause
+exit /b
