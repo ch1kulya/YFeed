@@ -12,7 +12,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 ### Installation
 
 > [!WARNING]
-> Make sure you have `Python 3.12` or newer, `FFmpeg` and `mpv` installed. If you are using Windows, `Windows Terminal` is also recommended.
+> Make sure you have `Python 3.12` or newer, `FFmpeg` and `mpv` installed. If you are using Windows, `Windows Terminal` is also recommended. If you are using Linux you should have `venv` module. If YouTube is not available in your country, you may need a Proxy/VPN to use the application.
 
 > [!TIP]
 > To simplify installation and startup you can use `run` scripts for automation, choose them depending on your system.
