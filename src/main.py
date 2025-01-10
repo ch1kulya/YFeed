@@ -12,9 +12,12 @@ def check_dependencies():
 
     If any dependency is missing, the program exits with an error message.
     """
+    missing_dependencies = False
     for dependency in ["ffmpeg", "mpv"]:
         if not shutil.which(dependency):
             print(f"Error: {dependency} is not installed or not in PATH.")
+            missing_dependencies = True
+    if missing_dependencies:
             sys.exit(1)
 
 def main():

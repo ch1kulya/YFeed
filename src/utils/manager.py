@@ -388,4 +388,5 @@ class FeedManager:
                 subprocess.Popen(f'wt.exe -w 0 new-tab -- python src/instance.py "{link}"', shell=True)
             else:
                 subprocess.Popen(f'start cmd /C python src/instance.py "{link}"', shell=True)
-        # TODO: Linux/Mac support
+        elif os.name == "posix": # Linux and MacOS
+            subprocess.Popen(f'python src/instance.py "{link}"', shell=True)

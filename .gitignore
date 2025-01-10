@@ -6,7 +6,7 @@ main.build/
 demo/
 *.webm
 *.part
-.venv/
+venv/
 *.txt
 *.zip
 ffmpeg/

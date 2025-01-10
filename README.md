@@ -12,10 +12,10 @@ is a cli python application that fetches recent video data using YouTube Data AP
 ### Installation
 
 > [!WARNING]
-> Ensure you have `Python`, `FFmpeg` and `mpv` installed. If you are using Windows, `Windows Terminal` is also recommended.
+> Make sure you have `Python 3.12` or newer, `FFmpeg` and `mpv` installed. If you are using Windows, `Windows Terminal` is also recommended. If you are using Linux you should have `venv` module. If YouTube is not available in your country, you may need a Proxy/VPN to use the application.
 
 > [!TIP]
-> To simplify the setup, you can use `run.bat` and `setup.bat` scripts for automation. Keep your YFeed installation up-to-date without losing data or binaries by running `update.bat`.
+> To simplify installation and startup you can use `run` scripts for automation, choose them depending on your system.
 
 #### Step-by-Step Manual Setup:
 1. Clone the repository

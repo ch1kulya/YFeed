@@ -1,5 +1,4 @@
 import os
-import webbrowser
 import subprocess
 from time import sleep
 from yt_dlp import YoutubeDL
@@ -81,9 +80,7 @@ class MediaPlayer:
             if os.path.exists(temp_file):
                 os.remove(temp_file)
                 print(Style.DIM + "Temporary file removed.")
-            print(Style.DIM + "Playing in browser.")
             sleep(1)
-            webbrowser.open(url)
                 
     def play_video(self, video_file):
         """Play the specified video file using the mpv media player with predefined settings.
@@ -93,16 +90,30 @@ class MediaPlayer:
 
         This method constructs a command with various mpv options and executes it using subprocess.
         """
-        # Start mpv with flags
-        command = (
-            f"mpv --hwdec=auto --hr-seek=always --ontop --autofit=40% --volume=50 "
-            f"--cache=yes --cache-secs=20 --no-border "
-            f"--osc=no --window-corners=round {video_file}"
-        )
-
+        mpv_command = [
+            "mpv",
+            "--hwdec=auto",
+            "--hr-seek=always",
+            "--autofit=40%",
+            "--volume=50",
+            "--cache=yes",
+            "--cache-secs=20",
+            "--no-border",
+            "--osc=no",
+            "--really-quiet",
+        ]
+        if os.name == 'nt':
+            mpv_command.append("--window-corners=round")
+        elif os.name == 'posix':
+            mpv_command.append("--profile=sw-fast")
+        mpv_command.append(video_file)
         try:
-            subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, close_fds=True)
+            subprocess.Popen(
+                mpv_command, stdout=None, stderr=None
+            )
             print("Video playback started successfully.")
+        except FileNotFoundError:
+            print(f"Error: mpv not found, make sure it is installed on this system.")
         except Exception as e:
             print(f"Error starting mpv: {e}")
             sleep(1)
