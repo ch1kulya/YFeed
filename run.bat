@@ -6,12 +6,14 @@ echo Checking if Python is installed...
 python --version >nul 2>&1
 if errorlevel 1 (
     echo Python is not installed. Please install Python.
+    pause
     exit /b
 )
 
 python -m venv --help >nul 2>&1
 if errorlevel 1 (
-    echo venv module is not available. Please ensure you have Python 3.3 or higher.
+    echo venv module is not available.
+    pause
     exit /b
 )
 
@@ -34,6 +36,7 @@ if not exist "%LOCKFILE%" (
     python -m pip install --disable-pip-version-check -r "%REQUIREMENTS%"
     if errorlevel 1 (
         echo Failed to install dependencies.
+        pause
         exit /b
     )
     copy /Y "%REQUIREMENTS%" "%LOCKFILE%" >nul
@@ -44,13 +47,14 @@ if not exist "%LOCKFILE%" (
         python -m pip install --disable-pip-version-check -r "%REQUIREMENTS%"
         if errorlevel 1 (
             echo Failed to update dependencies.
+            pause
             exit /b
         )
         copy /Y "%REQUIREMENTS%" "%LOCKFILE%" >nul
     ) else (
-        echo Dependencies are up to date.
+        echo Python dependencies are up to date.
     )
 )
 
-pause
 python src\main.py
+pause

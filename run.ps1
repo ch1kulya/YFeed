@@ -4,6 +4,7 @@ $Requirements = "requirements.txt"
 Write-Host "Checking if Python is installed..."
 if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
     Write-Host "Python is not installed. Please install Python."
+    Read-Host -Prompt "Press any key to continue . . ."
     exit 1
 }
 
@@ -11,7 +12,8 @@ try {
     python -m venv --help > $null 2>&1
     if ($LASTEXITCODE -ne 0) { throw "venv module is not available." }
 } catch {
-    Write-Host "venv module is not available. Please ensure you have Python 3.3 or higher."
+    Write-Host "venv module is not available."
+    Read-Host -Prompt "Press any key to continue . . ."
     exit 1
 }
 
@@ -36,6 +38,7 @@ if (-not (Test-Path $LockFile)) {
     python -m pip install --disable-pip-version-check -r $Requirements
     if ($LASTEXITCODE -ne 0) {
         Write-Host "Failed to install dependencies."
+        Read-Host -Prompt "Press any key to continue . . ."
         exit 1
     }
     Copy-Item $Requirements $LockFile -Force
@@ -47,13 +50,14 @@ if (-not (Test-Path $LockFile)) {
         python -m pip install --disable-pip-version-check -r $Requirements
         if ($LASTEXITCODE -ne 0) {
             Write-Host "Failed to update dependencies."
+            Read-Host -Prompt "Press any key to continue . . ."
             exit 1
         }
         Copy-Item $Requirements $LockFile -Force
     } else {
-        Write-Host "Dependencies are up to date."
+        Write-Host "Python dependencies are up to date."
     }
 }
 
-Read-Host -Prompt "Press any key to continue . . ."
 python src\main.py
+Read-Host -Prompt "Press any key to continue . . ."
