@@ -72,37 +72,31 @@ class FeedManager:
         with open(CHANNELS_FILE, "r") as f:
             return [line.strip() for line in f]
 
-    def save_channels(self) -> None:
-        """Save the current list of subscribed YouTube channel IDs to a file.
-
-        Creates the necessary directories if they do not exist.
-        """
-        os.makedirs(os.path.dirname(CHANNELS_FILE), exist_ok=True)
-        with open(CHANNELS_FILE, "w") as f:
-            f.write("\n".join(self.channels))
-
-    @staticmethod
-    def load_watched() -> Set[str]:
-        """Load the set of watched video IDs from a file.
-
-        If the watched file does not exist, it returns an empty set.
-
-        Returns:
-            Set[str]: A set of watched video IDs.
-        """
-        if not os.path.exists(WATCHED_FILE):
-            return set()
-        with open(WATCHED_FILE, "r") as f:
-            return set(line.strip() for line in f)
-
     def save_watched(self) -> None:
-        """Save the current set of watched video IDs to a file.
+        """Save the current set of watched video details to a JSON file.
 
         Creates the necessary directories if they do not exist.
         """
         os.makedirs(os.path.dirname(WATCHED_FILE), exist_ok=True)
         with open(WATCHED_FILE, "w") as f:
-            f.write("\n".join(self.watched))
+            json.dump([dict(item) for item in self.watched], f, indent=4)
+
+    @staticmethod
+    def load_watched() -> Set[Dict]:
+        """Load the set of watched video details from a JSON file.
+
+        If the watched file does not exist, it returns an empty set.
+
+        Returns:
+            Set[Dict]: A set of watched video details dictionaries.
+        """
+        if not os.path.exists(WATCHED_FILE):
+            return set()
+        with open(WATCHED_FILE, "r") as f:
+            try:
+                return set(tuple(d.items()) for d in json.load(f))
+            except json.JSONDecodeError:
+                return set()
             
     @staticmethod
     def remove_emojis(text: str) -> str:

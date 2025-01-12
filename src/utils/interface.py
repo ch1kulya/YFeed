@@ -195,7 +195,7 @@ class Interface:
         options = [
             (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}4{Fore.WHITE}. Subscribe            {Fore.YELLOW}7{Fore.WHITE}. Days filter  "),
             (f"{Fore.YELLOW}2{Fore.WHITE}. Search               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
-            (f"{Fore.YELLOW}3{Fore.WHITE}. Save video           {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
+            (f"{Fore.YELLOW}3{Fore.WHITE}. History              {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
         ]
     
         for option in options:
@@ -264,7 +264,7 @@ class Interface:
                     if len(channel_name) > channel_width - 3:
                         channel_name = channel_name[:channel_width-3] + "..."
                     cutoff_index = len(title)
-                    for char in ["|", "[", "(", ".", "@", ":", "•", "+", "?"]:
+                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?"]:
                         index, addition = title.find(char), ""
                         if 6 <= index < cutoff_index:
                             cutoff_index = index
@@ -298,8 +298,15 @@ class Interface:
                     break
                 if choice.isdigit() and 1 <= int(choice) <= len(videos):
                     video = videos[int(choice) - 1]
-                    self.manager.watched.add(video["id"])
-                    self.manager.save_watched()
+                    video_details = {
+                        'title': video["title"],
+                        'id': video["id"],
+                        'author': video.get("author", "Unknown Channel"),
+                        'watched_at': datetime.now().isoformat()
+                    }
+                    if video_details:
+                        self.manager.watched.add(tuple(video_details.items()))
+                        self.manager.save_watched()
                     self.manager.open_video_instance(video["link"])
         else:
             self.show_message("Please add at least one channel first!", Fore.YELLOW)
@@ -416,7 +423,7 @@ class Interface:
                         channel_name = channel_name[:channel_width - 3] + "..."
                     duration = f"{round(video['duration'] / 60)} min"
                     cutoff_index = len(title)
-                    for char in ["|", "[", "(", ".", "@", ":", "•", "+", "?"]:
+                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?"]:
                         index, addition = title.find(char), ""
                         if 6 <= index < cutoff_index:
                             cutoff_index = index
@@ -434,17 +441,83 @@ class Interface:
                 choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
                 if choice.isdigit() and 1 <= int(choice) <= len(results):
                     video = results[int(choice) - 1]
-                    self.manager.watched.add(video["id"])
-                    self.manager.save_watched()
-                    self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
+                    video_details = {
+                        'title': video["title"],
+                        'id': video["id"],
+                        'author': video.get("author", "Unknown Channel"),
+                        'watched_at': datetime.now().isoformat()
+                    }
+                    if video_details:
+                        self.manager.watched.add(tuple(video_details.items()))
+                        self.manager.save_watched()
+                        self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
         else:
             self.show_message("Please set YouTube API key in settings first!", Fore.RED)
 
-    def save_menu(self) -> None:
-        #temp logic
-        #from utils.player import MediaPlayer
-        #player = MediaPlayer
-        #stream_link = self.input_prompt(f"{Fore.WHITE}Enter stream {Fore.YELLOW}link{Fore.WHITE}")
-        #print(stream_link)
-        #player.play_video(player, stream_link)
-        pass #TODO live streams menu
+    def watched_history(self) -> None:
+        """Displays browsing history"""
+        self.draw_logo("Watched History")
+        watched_videos = [dict(item) for item in self.manager.watched]
+        if not watched_videos:
+            print(Fore.YELLOW + "No videos watched yet.")
+            sleep(1)
+            return
+
+        index_width, channel_width, time_width = 1, 25, 15
+        remaining_width = self.terminal_width - (index_width + time_width + channel_width)
+        title_width = int(remaining_width * 0.85)
+
+        separator = (
+            "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
+        )
+        header = (
+            f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Title'.ljust(title_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
+            f"{'Watched'.ljust(time_width)}{Style.RESET_ALL}"
+        )
+
+        print(header)
+        print(separator)
+        
+        if not watched_videos:
+            print(Fore.YELLOW + "No videos watched yet.")
+            sleep(1)
+            return
+            
+        for idx, video in enumerate(watched_videos[:8], start=1):
+
+            title = video["title"]
+            channel_name = video.get("author", "Unknown Channel")
+            if len(channel_name) > channel_width - 3:
+                channel_name = channel_name[:channel_width - 3] + "..."
+            
+            watched_at = video.get('watched_at')
+            time_ago = ""
+            if watched_at:
+                watched_at = datetime.fromisoformat(watched_at)
+                delta = datetime.now() - watched_at
+                time_ago = self.format_time_ago(delta)
+
+
+            cutoff_index = len(title)
+            for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?"]:
+                index, addition = title.find(char), ""
+                if 6 <= index < cutoff_index:
+                    cutoff_index = index
+                    if char in [".", "?"]:
+                        addition = char
+            title = " ".join(title[:cutoff_index].split()) + addition
+            if len(title) > title_width - 3:
+                title = title[:title_width - 3] + "..."
+
+            print(
+                f"{str(idx).rjust(index_width)} │ "
+                f"{title.ljust(title_width)} {Fore.WHITE}│ "
+                f"{channel_name.ljust(channel_width)} {Fore.WHITE}│ "
+                f"{time_ago.ljust(time_width)}{Style.RESET_ALL}"
+            )
+        choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} to rewatch or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+        if choice.isdigit() and 1 <= int(choice) <= len(watched_videos):
+            video = watched_videos[int(choice) - 1]
+            self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video['id']}")

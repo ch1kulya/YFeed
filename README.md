@@ -40,7 +40,7 @@ python src/main.py
 | `settings.json`      | User-configurable settings       |
 | `names.json`         | Subscribed channel names         |
 | `channels.yfe`       | Subscribed channel IDs           |
-| `watched.yfe`        | Watched video IDs                |
+| `watched.json`       | Watched videos                   |
 | `cache.json`         | Cached video data                |
 
 #### Contributing is encouraged 🤗
