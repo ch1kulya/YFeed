@@ -19,13 +19,20 @@ def test_watch_video(mock_mediaplayer):
     watch_video("https://www.youtube.com/watch?v=test")
     mock_mediaplayer.watch_video.assert_called_once_with("https://www.youtube.com/watch?v=test")
 
-def test_main_no_args(mock_exit):
+def test_main_no_args(mock_exit, capsys):
     with patch.object(sys, 'argv', ['instance.py']):
         with pytest.raises(SystemExit):
             main()
     mock_exit.assert_called_once()
+    captured = capsys.readouterr()
+    assert "No video link." in captured.out
 
 def test_main_with_args(mock_mediaplayer):
     with patch.object(sys, 'argv', ['instance.py', 'https://www.youtube.com/watch?v=test']):
         main()
     mock_mediaplayer.watch_video.assert_called_once_with("https://www.youtube.com/watch?v=test")
+
+def test_main_with_multiple_args(mock_mediaplayer):
+     with patch.object(sys, 'argv', ['instance.py', 'https://www.youtube.com/watch?v=test', 'extra', 'args']):
+        main()
+     mock_mediaplayer.watch_video.assert_called_once_with("https://www.youtube.com/watch?v=test")
