@@ -18,10 +18,14 @@ def watch_video(video_link):
     player = MediaPlayer()
     player.watch_video(video_link)
 
-if __name__ == "__main__":
+
+def main():
+    """Main entry point for the player instance."""
     if len(sys.argv) < 2:
         print("No video link.")
         sys.exit(1)
-
     video_link = sys.argv[1]
     watch_video(video_link)
+
+if __name__ == "__main__":
+    main()
