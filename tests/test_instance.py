@@ -16,8 +16,8 @@ def mock_exit():
         yield mock_exit
 
 def test_watch_video(mock_mediaplayer):
-    watch_video("http://example.com/video")
-    mock_mediaplayer.watch_video.assert_called_once_with("http://example.com/video")
+    watch_video("https://www.youtube.com/watch?v=test")
+    mock_mediaplayer.watch_video.assert_called_once_with("https://www.youtube.com/watch?v=test")
 
 def test_main_no_args(mock_exit):
     with patch.object(sys, 'argv', ['instance.py']):
@@ -26,6 +26,6 @@ def test_main_no_args(mock_exit):
     mock_exit.assert_called_once()
 
 def test_main_with_args(mock_mediaplayer):
-    with patch.object(sys, 'argv', ['instance.py', 'http://example.com/video']):
+    with patch.object(sys, 'argv', ['instance.py', 'https://www.youtube.com/watch?v=test']):
         main()
-    mock_mediaplayer.watch_video.assert_called_once_with("http://example.com/video")
+    mock_mediaplayer.watch_video.assert_called_once_with("https://www.youtube.com/watch?v=test")
