@@ -35,7 +35,7 @@ def main():
     actions = {
         "1": interface.videos_menu,
         "2": interface.search_menu,
-        "3": interface.live_menu,
+        "3": interface.save_menu,
         "4": interface.add_channel,
         "5": interface.list_channels,
         "6": interface.remove_channels,

@@ -195,7 +195,7 @@ class Interface:
         options = [
             (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}4{Fore.WHITE}. Subscribe            {Fore.YELLOW}7{Fore.WHITE}. Days filter  "),
             (f"{Fore.YELLOW}2{Fore.WHITE}. Search               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
-            (f"{Style.DIM}{Fore.YELLOW}3{Fore.WHITE}. Live streams{Style.NORMAL}         {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
+            (f"{Fore.YELLOW}3{Fore.WHITE}. Save video           {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
         ]
     
         for option in options:
@@ -227,13 +227,7 @@ class Interface:
             for i, channel_id in enumerate(self.manager.channels):
                 feed = parsed_feeds[i]
                 videos.extend(self.manager.fetch_videos(channel_id, feed))
-                    
-            print("Fetched successfully.")
-                    
-            if not videos:
-                self.show_message("No videos found!", Fore.RED)
-                return
-        
+
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
             videos = [video for video in videos if video["published"] > cutoff_date]
@@ -249,7 +243,10 @@ class Interface:
                 f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
                 f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
             )
-            print(Fore.GREEN + Style.BRIGHT + "All videos fetched!")
+            if not videos:
+                self.show_message("No videos found!", Fore.RED)
+                return
+            print("All videos fetched successfully!")
             fetching_time = (time() - fetching_start_time) * 1000
             print(f"Total fetching time: {Fore.LIGHTRED_EX if fetching_time > 10000 else Fore.LIGHTGREEN_EX}{int(fetching_time)}{Style.RESET_ALL} ms")
             sleep(0.3)
@@ -443,7 +440,7 @@ class Interface:
         else:
             self.show_message("Please set YouTube API key in settings first!", Fore.RED)
 
-    def live_menu(self) -> None:
+    def save_menu(self) -> None:
         #temp logic
         #from utils.player import MediaPlayer
         #player = MediaPlayer
