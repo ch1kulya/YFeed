@@ -28,7 +28,7 @@ pip install -r requirements.txt
 python src/main.py
 ```
 
-#### Obtaining YouTube API Key
+#### Obtaining YouTube API Key:
 1. Visit the [**Google Cloud Console**](https://console.cloud.google.com/).
 2. Create a new project or select an existing one.
 3. Enable the [**YouTube Data API v3**](https://console.cloud.google.com/apis/library/youtube.googleapis.com) for your project.
@@ -38,9 +38,9 @@ python src/main.py
 | **File**             | **Stores**                       |
 |----------------------|----------------------------------|
 | `settings.json`      | User-configurable settings       |
-| `names.json`         | Subscribed channel names         |
-| `channels.yfe`       | Subscribed channel IDs           |
+| `names.json`         | Channel names                    |
+| `channels.yfe`       | Subscribed channels              |
 | `watched.json`       | Watched videos                   |
-| `cache.json`         | Cached video data                |
+| `cache.json`         | Cached data                      |
 
 #### Contributing is encouraged 🤗
