@@ -57,6 +57,15 @@ class FeedManager:
         os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
         with open(CONFIG_FILE, "w") as f:
             json.dump(self.config, f)
+            
+    def save_channels(self) -> None:
+        """Save the current list of subscribed YouTube channel IDs to a file.
+
+        Creates the necessary directories if they do not exist.
+        """
+        os.makedirs(os.path.dirname(CHANNELS_FILE), exist_ok=True)
+        with open(CHANNELS_FILE, "w") as f:
+            f.write("\n".join(self.channels))
 
     @staticmethod
     def load_channels() -> List[str]:

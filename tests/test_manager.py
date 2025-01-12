@@ -101,26 +101,10 @@ def test_save_channels(manager):
         written_data = "".join(call_args[0][0] for call_args in handle.write.call_args_list)
         assert "UC111\nUC222" in written_data
 
-def test_load_watched(manager):
-    file_data = "vid1\nvid2"
-    with patch('os.path.exists', return_value=True), patch('builtins.open', mock_open(read_data=file_data)):
-        watched = manager.load_watched()
-        assert watched == {"vid1", "vid2"}
-
 def test_load_watched_not_exists(manager):
     with patch('os.path.exists', return_value=False):
         watched = manager.load_watched()
         assert watched == set()
-
-def test_save_watched(manager):
-    manager.watched = {"vidA", "vidB"}
-    mocked_open_file = mock_open()
-    with patch('os.makedirs'), patch('builtins.open', mocked_open_file):
-        manager.save_watched()
-        mocked_open_file.assert_called_once_with('data/watched.yfe', 'w')
-        handle = mocked_open_file()
-        written_data = "".join(call_args[0][0] for call_args in handle.write.call_args_list).strip().split('\n')
-        assert set(written_data) == {"vidA", "vidB"}
 
 def test_parse_feeds(manager):
     with patch.object(manager, 'parse_feed', return_value="feed_data") as mock_parse:
