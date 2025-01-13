@@ -18,7 +18,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 > To simplify installation and startup you can use `run` scripts for automation, choose them depending on your system.
 
 #### Step-by-Step Manual Setup:
-1. Clone the repository
+1. Clone the repository or download `YFeed.zip` from the latest release.
 2. Install required libraries:
 ```
 pip install -r requirements.txt

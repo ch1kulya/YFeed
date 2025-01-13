@@ -9,6 +9,7 @@
 *.zip
 *.lock
 *.xml
+*.mp4
 
 ffmpeg/
 mpv/
