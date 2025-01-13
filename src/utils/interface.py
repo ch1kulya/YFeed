@@ -274,7 +274,8 @@ class Interface:
                     title = " ".join(title[:cutoff_index].split()) + addition
                     if len(title) > title_width - 3:
                         title = title[:title_width - 3] + "..."
-                    if video["id"] in self.manager.watched:
+                    watched_videos = [dict(watched_video) for watched_video in self.manager.watched]
+                    if any(video["id"] == watched_video["id"] for watched_video in watched_videos):
                         color = Fore.LIGHTBLACK_EX
                         color_time = Fore.LIGHTBLACK_EX
                     elif delta.days == 0:
