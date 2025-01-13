@@ -135,13 +135,18 @@ class Interface:
         Returns:
             str: A string representing the time difference, e.g., '5m ago', '2h ago', '1d ago'.
         """
+        if delta.total_seconds() < 60:
+            return f"{int(delta.total_seconds())}s ago"
         minutes = delta.total_seconds() / 60
         if minutes < 60:
             return f"{int(minutes)}m ago"
         hours = minutes / 60
         if hours < 24:
             return f"{int(hours)}h ago"
-        return f"{int(hours / 24)}d ago"
+        days = hours / 24
+        if days < 365:
+            return f"{int(days)}d ago"
+        return f"{int(days / 365)}y ago"
     
     def draw_logo(self, text) -> None:
         """Display the application logo with a gradient color effect.
@@ -469,7 +474,7 @@ class Interface:
 
     def watched_history(self) -> None:
         """Displays browsing history"""
-        self.draw_logo("Watched History")
+        self.draw_logo("History")
         watched_videos = [dict(item) for item in self.manager.watched]
         if not watched_videos:
             print(Fore.YELLOW + "No videos watched yet.")
