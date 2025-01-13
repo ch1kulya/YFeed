@@ -4,6 +4,7 @@ import pyfiglet
 from time import sleep, time
 from datetime import datetime, timedelta
 from colorama import Fore, Style
+from googleapiclient.errors import HttpError
 from utils.manager import FeedManager
 from utils.extractor import Extractor
 import re
@@ -381,12 +382,23 @@ class Interface:
         """Manage the YouTube API key."""
         api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}" + f" (current {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})")
         if api_key.strip():
-            self.manager.config["api_key"] = api_key.strip()
-            self.manager.save_config()
-            self.manager.channel_extractor = Extractor(api_key.strip())
-            self.show_message("API Key updated!", Fore.GREEN)
-        #elif api_key:
-        #TODO api_key validation
+            api_key_pattern = re.compile(r"^[A-Za-z0-9_-]{39}$")
+            if not api_key_pattern.match(api_key.strip()):
+                self.show_message("Invalid API Key format.", Fore.RED)
+                return
+            try:
+                self.manager.channel_extractor = Extractor(api_key.strip())
+                self.manager.channel_extractor.youtube.videos().list(part="id", id="dQw4w9WgXcQ").execute() # dQw4w9WgXcQ is the Rickroll :D
+                self.manager.config["api_key"] = api_key.strip()
+                self.manager.save_config()
+                self.show_message("API Key updated!", Fore.GREEN)
+            except HttpError as e:
+                if e.resp.status == 401:
+                      self.show_message(f"Invalid API Key. Error: {e}", Fore.RED)
+                else:
+                     self.show_message(f"Error validating API Key: {e}", Fore.RED)
+            except Exception as e:
+                self.show_message(f"Error validating API Key: {e}", Fore.RED)
     
     def search_menu(self) -> None:
         """Displays the search menu, prompts the user for a search query, displays results,
