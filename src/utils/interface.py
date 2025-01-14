@@ -9,6 +9,7 @@ from utils.manager import FeedManager
 from utils.extractor import Extractor
 from rich.console import Console
 from rich.padding import Padding
+from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.align import Align
 import re
@@ -342,7 +343,7 @@ class Interface:
                     else:
                         self.show_message("Channel already exists.", "yellow")
                 except Exception as e:
-                    self.show_message(f"Error: {str(e)}", Fore.RED)
+                    self.show_message(f"Error: {str(e)}", "red")
         else:
             self.show_message("Please set YouTube API key in settings first!", "yellow")
 
@@ -378,28 +379,41 @@ class Interface:
 
     def days_filter(self) -> None:
         """Manage the filter for the number of days."""
-        days = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of days" + f" (current - {self.manager.config['days_filter']} days)")
+        self.draw_logo("Settings")
+        answer = Prompt.ask(f"\t Enter the [underline]number[/underline] of days [cyan](currently {self.manager.config['days_filter']} days)[/cyan]")
+        days = ''.join([char for char in answer if char.isdigit()])
         if days.isdigit() and int(days) > 0:
             self.manager.config["days_filter"] = int(days)
             self.manager.save_config()
+            self.draw_logo("Settings")
+            self.show_message("Settings updated!", "green")
         elif days.strip():
-            self.show_message("Invalid input.", "red")
+            self.draw_logo("Settings")
+            self.show_message("Invalid input", "red")
             
     def length_filter(self) -> None:
         """Manage the minimum video length filter."""
-        new_length = self.input_prompt(f"{Fore.WHITE}Enter {Fore.YELLOW}number{Fore.WHITE} of minutes" + f" (current {self.manager.config['min_video_length']} minutes)")
+        self.draw_logo("Settings")
+        answer = Prompt.ask(f"\t Enter the [underline]number[/underline] of minutes [cyan](currently {self.manager.config['min_video_length']} minutes)[/cyan]")
+        new_length = ''.join([char for char in answer if char.isdigit()])
         if new_length.isdigit() and int(new_length) > 0:
             self.manager.config["min_video_length"] = int(new_length)
             self.manager.save_config()
+            self.draw_logo("Settings")
+            self.show_message("Settings updated!", "green")
         elif new_length.strip():
-            self.show_message("Invalid input.", "red")
+            self.draw_logo("Settings")
+            self.show_message("Invalid input", "red")
 
     def manage_api(self) -> None:
         """Manage the YouTube API key."""
-        api_key = self.input_prompt(f"{Fore.WHITE}Enter YouTube {Fore.YELLOW}API Key{Fore.WHITE}" + f" (current {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})")
-        if api_key.strip():
+        self.draw_logo("Settings")
+        answer = Prompt.ask(f"\t Enter the YouTube API Key [cyan](currently {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})[/cyan]")
+        if answer.strip():
+            api_key = max(answer.split(), key=len)
             api_key_pattern = re.compile(r"^[A-Za-z0-9_-]{39}$")
             if not api_key_pattern.match(api_key.strip()):
+                self.draw_logo("Settings")
                 self.show_message("Invalid API Key format.", "red")
                 return
             try:
@@ -407,14 +421,18 @@ class Interface:
                 self.manager.channel_extractor.youtube.videos().list(part="id", id="dQw4w9WgXcQ").execute() # dQw4w9WgXcQ is the Rickroll :D
                 self.manager.config["api_key"] = api_key.strip()
                 self.manager.save_config()
+                self.draw_logo("Settings")
                 self.show_message("API Key updated!", "green")
             except HttpError as e:
                 if e.resp.status == 401:
-                      self.show_message(f"Invalid API Key. Error: {e}", Fore.RED)
+                    self.draw_logo("Settings")
+                    self.show_message(f"Invalid API Key. Error: {e}", "red")
                 else:
-                     self.show_message(f"Error validating API Key: {e}", Fore.RED)
+                    self.draw_logo("Settings")
+                    self.show_message(f"Error validating API Key: {e}", "red")
             except Exception as e:
-                self.show_message(f"Error validating API Key: {e}", Fore.RED)
+                self.draw_logo("Settings")
+                self.show_message(f"Error validating API Key: {e}", "red")
     
     def search_menu(self) -> None:
         """Displays the search menu, prompts the user for a search query, displays results,
