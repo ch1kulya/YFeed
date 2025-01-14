@@ -8,6 +8,9 @@ from googleapiclient.errors import HttpError
 from utils.manager import FeedManager
 from utils.extractor import Extractor
 from rich.console import Console
+from rich.padding import Padding
+from rich.panel import Panel
+from rich.align import Align
 import re
 import sys
 
@@ -39,7 +42,7 @@ class Interface:
         Args:
             manager (FeedManager): The manager instance to handle YouTube feeds.
         """
-        console = Console()
+        self.console = Console()
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
         self.channel_ids = self.manager.channels
@@ -190,8 +193,13 @@ class Interface:
             message (str): The message to display.
             color (str, optional): The color to display the message in. Defaults to Fore.WHITE.
         """
-        print(f"{color}{message}{Style.RESET_ALL}")
-        input(Fore.WHITE + f"Press {Fore.YELLOW}Enter{Fore.WHITE} to continue...")
+        #print(f"{color}{message}{Style.RESET_ALL}")
+        panel = Panel.fit(Padding(f"[{color}]{message}[/{color}]", (3, 18), expand=False), title="Message", subtitle="Press [b yellow]F[/b yellow] to continue")
+        self.console.print(Align.center(panel, vertical="middle"))
+        while True:
+            selection = getch()
+            if selection == 'f':
+                return
     
     def main_menu(self) -> str:
         """Display the main menu and prompt the user to make a selection.
@@ -479,8 +487,7 @@ class Interface:
         self.draw_logo("History")
         watched_videos = [dict(item) for item in self.manager.watched]
         if not watched_videos:
-            print(Fore.YELLOW + "No videos watched yet.")
-            sleep(1)
+            self.show_message("No videos watched yet.", "yellow")
             return
 
         index_width, channel_width, time_width = 1, 25, 15
@@ -501,8 +508,7 @@ class Interface:
         print(separator)
         
         if not watched_videos:
-            print(Fore.YELLOW + "No videos watched yet.")
-            sleep(1)
+            self.show_message("No videos watched yet.", "yellow")
             return
             
         for idx, video in enumerate(watched_videos[:8], start=1):
