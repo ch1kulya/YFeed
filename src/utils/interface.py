@@ -293,7 +293,7 @@ class Interface:
                     else:
                         color = "white"
                         color_time = "white"
-                    table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", Padding(f"[{color}]{title}[/{color}]", (0, 10, 0, 0), expand=False), f"[{color}]{channel_name}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
+                    table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", f"[{color}]{title}[/{color}]", f"[{color}]{channel_name}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
                 
                 self.console.print(Align.center(table, vertical="middle"))
         
