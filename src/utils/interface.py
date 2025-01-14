@@ -7,6 +7,7 @@ from colorama import Fore, Style
 from googleapiclient.errors import HttpError
 from utils.manager import FeedManager
 from utils.extractor import Extractor
+from rich.console import Console
 import re
 import sys
 
@@ -38,6 +39,7 @@ class Interface:
         Args:
             manager (FeedManager): The manager instance to handle YouTube feeds.
         """
+        console = Console()
         self.manager = manager
         self.terminal_width = os.get_terminal_size().columns
         self.channel_ids = self.manager.channels

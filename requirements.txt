@@ -3,3 +3,4 @@ colorama
 google-api-python-client
 pyfiglet
 yt-dlp
+rich
