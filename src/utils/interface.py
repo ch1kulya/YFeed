@@ -260,7 +260,7 @@ class Interface:
                 f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
             )
             if not videos:
-                self.show_message("No videos found!", Fore.RED)
+                self.show_message("No videos found!", "red")
                 return
             print("All videos fetched successfully!")
             fetching_time = (time() - fetching_start_time) * 1000
@@ -326,7 +326,7 @@ class Interface:
                         self.manager.save_watched()
                     self.manager.open_video_instance(video["link"])
         else:
-            self.show_message("Please add at least one channel first!", Fore.YELLOW)
+            self.show_message("Please add at least one channel first!", "yellow")
 
     def add_channel(self) -> None:
         """Add a YouTube channel to the manager."""
@@ -340,11 +340,11 @@ class Interface:
                         self.manager.save_channels()
                         self.channel_map = self.manager.channel_extractor.get_channel_names(self.channel_ids)
                     else:
-                        self.show_message("Channel already exists.", Fore.YELLOW)
+                        self.show_message("Channel already exists.", "yellow")
                 except Exception as e:
                     self.show_message(f"Error: {str(e)}", Fore.RED)
         else:
-            self.show_message("Please set YouTube API key in settings first!", Fore.RED)
+            self.show_message("Please set YouTube API key in settings first!", "yellow")
 
 
     def list_channels(self) -> None:
@@ -355,7 +355,7 @@ class Interface:
                 print(f"\t{channel_name}{Style.DIM}:{channel_id}{Style.RESET_ALL}".ljust(50), end="\n" if idx % 2 == 0 or idx == len(self.channel_ids) else "\t")
             input(f"\n{Fore.WHITE}Press [{Fore.YELLOW}enter{Fore.WHITE}] to return.{Style.RESET_ALL}")
         else:
-            self.show_message("No channels added yet!", Fore.YELLOW)
+            self.show_message("No channels added yet!", "yellow")
 
     def remove_channels(self) -> None:
         """Remove one YouTube channels from the manager."""
@@ -372,9 +372,9 @@ class Interface:
                 self.manager.channels.pop(int(choice) - 1)
                 self.manager.save_channels()
             elif choice:
-                self.show_message("Invalid input.", Fore.RED)
+                self.show_message("Invalid input.", "red")
         else:
-            self.show_message("No channels to remove!", Fore.YELLOW)
+            self.show_message("No channels to remove!", "yellow")
 
     def days_filter(self) -> None:
         """Manage the filter for the number of days."""
@@ -383,7 +383,7 @@ class Interface:
             self.manager.config["days_filter"] = int(days)
             self.manager.save_config()
         elif days.strip():
-            self.show_message("Invalid input.", Fore.RED)
+            self.show_message("Invalid input.", "red")
             
     def length_filter(self) -> None:
         """Manage the minimum video length filter."""
@@ -392,7 +392,7 @@ class Interface:
             self.manager.config["min_video_length"] = int(new_length)
             self.manager.save_config()
         elif new_length.strip():
-            self.show_message("Invalid input.", Fore.RED)
+            self.show_message("Invalid input.", "red")
 
     def manage_api(self) -> None:
         """Manage the YouTube API key."""
@@ -400,14 +400,14 @@ class Interface:
         if api_key.strip():
             api_key_pattern = re.compile(r"^[A-Za-z0-9_-]{39}$")
             if not api_key_pattern.match(api_key.strip()):
-                self.show_message("Invalid API Key format.", Fore.RED)
+                self.show_message("Invalid API Key format.", "red")
                 return
             try:
                 self.manager.channel_extractor = Extractor(api_key.strip())
                 self.manager.channel_extractor.youtube.videos().list(part="id", id="dQw4w9WgXcQ").execute() # dQw4w9WgXcQ is the Rickroll :D
                 self.manager.config["api_key"] = api_key.strip()
                 self.manager.save_config()
-                self.show_message("API Key updated!", Fore.GREEN)
+                self.show_message("API Key updated!", "green")
             except HttpError as e:
                 if e.resp.status == 401:
                       self.show_message(f"Invalid API Key. Error: {e}", Fore.RED)
@@ -439,9 +439,8 @@ class Interface:
                 self.draw_logo("Search")
                 results = self.manager.search_youtube_videos(query)
                 if not results:
-                    print(Fore.YELLOW + "No videos were found matching your filters for this search query.")
-                    sleep(1)
-                    return None
+                    self.show_message("No videos matching your filters were found.", "yellow")
+                    return
                 print(header)
                 print(separator)
                 for idx, video in enumerate(results[:8], start=1):
@@ -480,7 +479,7 @@ class Interface:
                         self.manager.save_watched()
                         self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
         else:
-            self.show_message("Please set YouTube API key in settings first!", Fore.RED)
+            self.show_message("Please set YouTube API key in settings first!", "red")
 
     def watched_history(self) -> None:
         """Displays browsing history"""

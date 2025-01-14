@@ -348,7 +348,6 @@ class FeedManager:
             ).execute()
             video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
             if not video_ids:
-                print(Fore.YELLOW + "No videos found for the given search query.")
                 return []
             videos_response = self.channel_extractor.youtube.videos().list(
                 part='snippet,contentDetails',
