@@ -297,7 +297,7 @@ class Interface:
                 
                 self.console.print(Align.center(table, vertical="middle"))
         
-                choice = self.input_prompt(f"\n\t{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+                choice = Prompt.ask("\n\tSelect video [underline]index[/underline]")
                 if not choice.strip():
                     break
                 if choice.isdigit() and 1 <= int(choice) <= len(videos):
