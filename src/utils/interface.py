@@ -12,6 +12,8 @@ from rich.padding import Padding
 from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.align import Align
+from rich.table import Table
+from rich import box
 import re
 import sys
 
@@ -248,18 +250,7 @@ class Interface:
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
             videos = [video for video in videos if video["published"] > cutoff_date]
-        
-            index_width = len(str(len(videos)))
-            channel_width, time_width = 25, 10
-            remaining_width = self.terminal_width - (index_width + time_width + channel_width)
-            title_width = int(remaining_width * 0.85)
-            separator = "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
-            header = (
-                f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
-                f"{'Title'.ljust(title_width)} {Fore.WHITE}│{Fore.CYAN} "
-                f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
-                f"{'Published'.ljust(time_width)}{Style.RESET_ALL}"
-            )
+
             if not videos:
                 self.show_message("No videos found!", "red")
                 return
@@ -270,48 +261,43 @@ class Interface:
             while True:
                 os.system("cls" if os.name == "nt" else "clear")
                 self.draw_logo("Video List")
-                print(header)
-                print(separator)
+                table = Table(box=box.ROUNDED)
+                table.add_column("#", justify="center")
+                table.add_column("Title")
+                table.add_column("Channel", justify="center", style="b")
+                table.add_column("Published", justify="right", style="italic")
                 for idx, video in enumerate(videos):
                     title = video["title"]
                     published = video["published"]
                     delta = datetime.now(published.tzinfo) - published
                     time_ago = self.format_time_ago(delta)
                     channel_name = video.get("author", "Unknown Channel")
-                    if len(channel_name) > channel_width - 3:
-                        channel_name = channel_name[:channel_width-3] + "..."
                     cutoff_index = len(title)
-                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?"]:
+                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
                         index, addition = title.find(char), ""
                         if 6 <= index < cutoff_index:
                             cutoff_index = index
                             if char in [".", "?"]:
                                 addition = char
                     title = " ".join(title[:cutoff_index].split()) + addition
-                    if len(title) > title_width - 3:
-                        title = title[:title_width - 3] + "..."
                     watched_videos = [dict(watched_video) for watched_video in self.manager.watched]
                     if any(video["id"] == watched_video["id"] for watched_video in watched_videos):
-                        color = Fore.LIGHTBLACK_EX
-                        color_time = Fore.LIGHTBLACK_EX
+                        color = "grey"
+                        color_time = "grey"
                     elif delta.days == 0:
-                        color = Fore.WHITE
-                        color_time = Fore.LIGHTYELLOW_EX
+                        color = "white"
+                        color_time = "yellow"
                     elif delta.days == 1:
-                        color = Fore.WHITE
-                        color_time = Fore.LIGHTMAGENTA_EX
+                        color = "white"
+                        color_time = "magenta"
                     else:
-                        color = Fore.WHITE
-                        color_time = Fore.WHITE
+                        color = "white"
+                        color_time = "white"
+                    table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", Padding(f"[{color}]{title}[/{color}]", (0, 10, 0, 0), expand=False), f"[{color}]{channel_name}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
+                
+                self.console.print(Align.center(table, vertical="middle"))
         
-                    print(
-                        f"{str(idx + 1).rjust(index_width)} {Fore.WHITE}│{color} "
-                        f"{title.ljust(title_width)} {Fore.WHITE}│{color} "
-                        f"{channel_name.ljust(channel_width)} {Fore.WHITE}│{color} "
-                        f"{color_time}{time_ago.ljust(time_width)}{Style.RESET_ALL}"
-                    )
-        
-                choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+                choice = self.input_prompt(f"\n\t{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
                 if not choice.strip():
                     break
                 if choice.isdigit() and 1 <= int(choice) <= len(videos):
@@ -468,7 +454,7 @@ class Interface:
                         channel_name = channel_name[:channel_width - 3] + "..."
                     duration = f"{round(video['duration'] / 60)} min"
                     cutoff_index = len(title)
-                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?"]:
+                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
                         index, addition = title.find(char), ""
                         if 6 <= index < cutoff_index:
                             cutoff_index = index
@@ -544,7 +530,7 @@ class Interface:
 
 
             cutoff_index = len(title)
-            for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?"]:
+            for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
                 index, addition = title.find(char), ""
                 if 6 <= index < cutoff_index:
                     cutoff_index = index
