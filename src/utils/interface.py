@@ -237,20 +237,14 @@ class Interface:
             self.draw_logo("Video List")
             videos = []
             fetching_start_time = time()
-            print(f"Fetching videos from {Fore.YELLOW}{len(self.manager.channels)}{Fore.WHITE} channels!{Style.RESET_ALL}")
-            print("Parsing...")
             parsed_feeds = self.manager.parse_feeds(self.manager.channels)
-            print("Parsed successfully.")
             print("Fetching...")
-        
             for i, channel_id in enumerate(self.manager.channels):
                 feed = parsed_feeds[i]
                 videos.extend(self.manager.fetch_videos(channel_id, feed))
-
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
             videos = [video for video in videos if video["published"] > cutoff_date]
-
             if not videos:
                 self.show_message("No videos found!", "red")
                 return
