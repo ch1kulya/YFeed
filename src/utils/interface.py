@@ -259,6 +259,7 @@ class Interface:
                 table.add_column("#", justify="center")
                 table.add_column("Title")
                 table.add_column("Channel", justify="center", style="b")
+                table.add_column("Duration", justify="right", style="b")
                 table.add_column("Published", justify="right", style="italic")
                 for idx, video in enumerate(videos):
                     title = video["title"]
@@ -266,6 +267,7 @@ class Interface:
                     delta = datetime.now(published.tzinfo) - published
                     time_ago = self.format_time_ago(delta)
                     channel_name = video.get("author", "Unknown Channel")
+                    duration = f"{round(video['duration_seconds'] / 60)} min"
                     cutoff_index = len(title)
                     for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
                         index, addition = title.find(char), ""
@@ -287,7 +289,7 @@ class Interface:
                     else:
                         color = "white"
                         color_time = "white"
-                    table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", f"[{color}]{title}[/{color}]", f"[{color}]{channel_name}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
+                    table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", f"[{color}]{title}[/{color}]", f"[{color}]{channel_name}[/{color}]", f"[{color}]{duration}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
                 
                 self.console.print(Align.center(table, vertical="middle"))
         

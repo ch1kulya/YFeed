@@ -258,6 +258,7 @@ class FeedManager:
                                 "published": published_date,
                                 "id": video_id,
                                 "author": entry.author if 'author' in entry else "Unknown",
+                                "duration_seconds": total_seconds,
                             })
                         except ValueError:
                             print(f"Invalid date format for cached entry: {published_date}")
@@ -325,6 +326,7 @@ class FeedManager:
                             "published": published_date,
                             "id": video_id,
                             "author": entry.author if 'author' in entry else "Unknown",
+                            "duration_seconds": total_seconds,
                         })
 
                     # Save updated cache
