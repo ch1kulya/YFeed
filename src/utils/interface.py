@@ -326,11 +326,27 @@ class Interface:
 
     def list_channels(self) -> None:
         """List all managed YouTube channels."""
-        if self.manager.channels:
-            for idx, channel_id in enumerate(self.channel_ids, 1):
-                channel_name = self.channel_map.get(channel_id, "Unknown")
-                print(f"\t{channel_name}{Style.DIM}:{channel_id}{Style.RESET_ALL}".ljust(50), end="\n" if idx % 2 == 0 or idx == len(self.channel_ids) else "\t")
-            input(f"\n{Fore.WHITE}Press [{Fore.YELLOW}enter{Fore.WHITE}] to return.{Style.RESET_ALL}")
+        if self.channel_ids:
+            self.draw_logo("Channels")
+            table = Table(box=box.ROUNDED)
+            for _ in range(0, 2):
+                table.add_column("#", justify="center")
+                table.add_column("Channel", justify="center", style="b white")
+                table.add_column("YouTube ID", justify="center", style="dim italic")
+            num_channels = len(self.channel_ids)
+            for i in range(0, num_channels, 2):
+                row_data = []
+                for j in range(2):
+                    if i + j < num_channels:
+                        idx = i+j +1
+                        channel_id = self.channel_ids[i+j]
+                        channel_name = self.channel_map.get(channel_id, "Unknown")
+                        row_data.extend([str(idx), channel_name, channel_id])
+                    else:
+                        row_data.extend(["", "", ""])
+                table.add_row(*row_data)
+            self.console.print(Align.center(table, vertical="middle"))
+            input()
         else:
             self.show_message("No channels added yet!", "yellow")
 
@@ -356,7 +372,7 @@ class Interface:
     def days_filter(self) -> None:
         """Manage the filter for the number of days."""
         self.draw_logo("Settings")
-        answer = Prompt.ask(f"\t Enter the [underline]number[/underline] of days [cyan](currently {self.manager.config['days_filter']} days)[/cyan]")
+        answer = Prompt.ask("\n" + " " * 9 + f"Enter the [underline]number[/underline] of days [cyan](currently {self.manager.config['days_filter']} days)[/cyan]")
         days = ''.join([char for char in answer if char.isdigit()])
         if days.isdigit() and int(days) > 0:
             self.manager.config["days_filter"] = int(days)
@@ -370,7 +386,7 @@ class Interface:
     def length_filter(self) -> None:
         """Manage the minimum video length filter."""
         self.draw_logo("Settings")
-        answer = Prompt.ask(f"\t Enter the [underline]number[/underline] of minutes [cyan](currently {self.manager.config['min_video_length']} minutes)[/cyan]")
+        answer = Prompt.ask("\n" + " " * 9 + f"Enter the [underline]number[/underline] of minutes [cyan](currently {self.manager.config['min_video_length']} minutes)[/cyan]")
         new_length = ''.join([char for char in answer if char.isdigit()])
         if new_length.isdigit() and int(new_length) > 0:
             self.manager.config["min_video_length"] = int(new_length)
@@ -384,7 +400,7 @@ class Interface:
     def manage_api(self) -> None:
         """Manage the YouTube API key."""
         self.draw_logo("Settings")
-        answer = Prompt.ask(f"\t Enter the YouTube API Key [cyan](currently {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})[/cyan]")
+        answer = Prompt.ask("\n" + " " * 9 + f"Enter the YouTube API Key [cyan](currently {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})[/cyan]")
         if answer.strip():
             api_key = max(answer.split(), key=len)
             api_key_pattern = re.compile(r"^[A-Za-z0-9_-]{39}$")
