@@ -112,6 +112,17 @@ class Interface:
             print(self.center_text(line))
         print("\n")
     
+    def format_title(self, title: str) -> str:
+        cutoff_index = len(title)
+        for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
+            index, addition = title.find(char), ""
+            if 16 <= index < cutoff_index:
+                cutoff_index = index
+                if char in [".", "?"]:
+                    addition = char
+        title = " ".join(title[:cutoff_index].split()) + addition
+        return title
+    
     def gradient_color(self, text: str, start_color: tuple, end_color: tuple) -> str:
         """Apply a gradient color effect to the given text.
 
@@ -262,38 +273,24 @@ class Interface:
                 table.add_column("Duration", justify="right", style="b")
                 table.add_column("Published", justify="right", style="italic")
                 for idx, video in enumerate(videos):
-                    title = video["title"]
+                    title = self.format_title(video["title"])
+                    color, color_time = "white", "white"
                     published = video["published"]
                     delta = datetime.now(published.tzinfo) - published
                     time_ago = self.format_time_ago(delta)
                     channel_name = video.get("author", "Unknown Channel")
                     duration = f"{round(video['duration_seconds'] / 60)} min"
-                    cutoff_index = len(title)
-                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
-                        index, addition = title.find(char), ""
-                        if 6 <= index < cutoff_index:
-                            cutoff_index = index
-                            if char in [".", "?"]:
-                                addition = char
-                    title = " ".join(title[:cutoff_index].split()) + addition
                     watched_videos = [dict(watched_video) for watched_video in self.manager.watched]
                     if any(video["id"] == watched_video["id"] for watched_video in watched_videos):
                         color = "grey"
                         color_time = "grey"
                     elif delta.days == 0:
-                        color = "white"
                         color_time = "yellow"
                     elif delta.days == 1:
-                        color = "white"
                         color_time = "magenta"
-                    else:
-                        color = "white"
-                        color_time = "white"
                     table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", f"[{color}]{title}[/{color}]", f"[{color}]{channel_name}[/{color}]", f"[{color}]{duration}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
-                
                 self.console.print(Align.center(table, vertical="middle"))
-        
-                choice = Prompt.ask("\n\tSelect video [underline]index[/underline]")
+                choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline]")
                 if not choice.strip():
                     break
                 if choice.isdigit() and 1 <= int(choice) <= len(videos):
@@ -444,21 +441,11 @@ class Interface:
                 print(header)
                 print(separator)
                 for idx, video in enumerate(results[:8], start=1):
-                    title = video["title"]
+                    title = self.format_title(video["title"])
                     channel_name = video.get("author", "Unknown Channel")
                     if len(channel_name) > channel_width - 3:
                         channel_name = channel_name[:channel_width - 3] + "..."
                     duration = f"{round(video['duration'] / 60)} min"
-                    cutoff_index = len(title)
-                    for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
-                        index, addition = title.find(char), ""
-                        if 6 <= index < cutoff_index:
-                            cutoff_index = index
-                            if char in [".", "?"]:
-                                addition = char
-                    title = " ".join(title[:cutoff_index].split()) + addition
-                    if len(title) > title_width - 3:
-                        title = title[:title_width - 3] + "..."
                     print(
                         f"{str(idx).rjust(index_width)} │ "
                         f"{title.ljust(title_width)} {Fore.WHITE}│ "
@@ -511,31 +498,16 @@ class Interface:
             return
             
         for idx, video in enumerate(watched_videos[:8], start=1):
-
-            title = video["title"]
+            title = self.format_title(video["title"])
             channel_name = video.get("author", "Unknown Channel")
             if len(channel_name) > channel_width - 3:
                 channel_name = channel_name[:channel_width - 3] + "..."
-            
             watched_at = video.get('watched_at')
             time_ago = ""
             if watched_at:
                 watched_at = datetime.fromisoformat(watched_at)
                 delta = datetime.now() - watched_at
                 time_ago = self.format_time_ago(delta)
-
-
-            cutoff_index = len(title)
-            for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
-                index, addition = title.find(char), ""
-                if 6 <= index < cutoff_index:
-                    cutoff_index = index
-                    if char in [".", "?"]:
-                        addition = char
-            title = " ".join(title[:cutoff_index].split()) + addition
-            if len(title) > title_width - 3:
-                title = title[:title_width - 3] + "..."
-
             print(
                 f"{str(idx).rjust(index_width)} │ "
                 f"{title.ljust(title_width)} {Fore.WHITE}│ "
