@@ -326,7 +326,7 @@ class Interface:
 
     def list_channels(self) -> None:
         """List all managed YouTube channels."""
-        if self.channel_ids:
+        if self.manager.channels:
             self.draw_logo("Channels")
             table = Table(box=box.ROUNDED)
             for _ in range(0, 2):
@@ -353,14 +353,26 @@ class Interface:
     def remove_channels(self) -> None:
         """Remove one YouTube channels from the manager."""
         if self.manager.channels:
-            for idx, channel_id in enumerate(self.channel_ids, 1):
-                channel_name = self.channel_map.get(channel_id, "Unknown")
-                print(f"{Fore.RED}{str(idx).center(2)}{Fore.WHITE} {channel_name.ljust(20)}", end="")
-                if idx % 4 == 0 or idx == len(self.channel_ids):
-                    print()
-                else:
-                    print("\t" * 2, end="")
-            choice = self.input_prompt(f"\n{Fore.WHITE}Enter [{Fore.RED}number{Fore.WHITE}] to remove")
+            self.draw_logo("Channels")
+            table = Table(box=box.ROUNDED)
+            for _ in range(0, 2):
+                table.add_column("#", justify="center", style="b red")
+                table.add_column("Channel", justify="center", style="b white")
+                table.add_column("YouTube ID", justify="center", style="dim italic")
+            num_channels = len(self.channel_ids)
+            for i in range(0, num_channels, 2):
+                row_data = []
+                for j in range(2):
+                    if i + j < num_channels:
+                        idx = i+j +1
+                        channel_id = self.channel_ids[i+j]
+                        channel_name = self.channel_map.get(channel_id, "Unknown")
+                        row_data.extend([str(idx), channel_name, channel_id])
+                    else:
+                        row_data.extend(["", "", ""])
+                table.add_row(*row_data)
+            self.console.print(Align.center(table, vertical="middle"))
+            choice = Prompt.ask("\n" + " " * 9 + "Select channel [underline]index[/underline] to remove[red]")
             if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                 self.manager.channels.pop(int(choice) - 1)
                 self.manager.save_channels()
