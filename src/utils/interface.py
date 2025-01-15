@@ -1,7 +1,7 @@
 import os
 import glob
 import pyfiglet
-from time import sleep, time
+from time import sleep
 from datetime import datetime, timedelta
 from colorama import Fore, Style
 from googleapiclient.errors import HttpError
@@ -247,21 +247,18 @@ class Interface:
         if self.manager.channels:
             self.draw_logo("Video List")
             videos = []
-            fetching_start_time = time()
             parsed_feeds = self.manager.parse_feeds(self.manager.channels)
-            print("Fetching...")
-            for i, channel_id in enumerate(self.manager.channels):
-                feed = parsed_feeds[i]
-                videos.extend(self.manager.fetch_videos(channel_id, feed))
+            with self.console.status(" " * 9 + "[b green]Fetching videos..."):
+                for i, channel_id in enumerate(self.manager.channels):
+                    feed = parsed_feeds[i]
+                    videos.extend(self.manager.fetch_videos(channel_id, feed))
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
             videos = [video for video in videos if video["published"] > cutoff_date]
             if not videos:
                 self.show_message("No videos found!", "red")
                 return
-            print("All videos fetched successfully!")
-            fetching_time = (time() - fetching_start_time) * 1000
-            print(f"Total fetching time: {Fore.LIGHTRED_EX if fetching_time > 10000 else Fore.LIGHTGREEN_EX}{int(fetching_time)}{Style.RESET_ALL} ms")
+            self.manager._log(f"[b green]Fetched successfully.")
             sleep(0.3)
             while True:
                 os.system("cls" if os.name == "nt" else "clear")
@@ -290,7 +287,7 @@ class Interface:
                         color_time = "magenta"
                     table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", f"[{color}]{title}[/{color}]", f"[{color}]{channel_name}[/{color}]", f"[{color}]{duration}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
                 self.console.print(Align.center(table, vertical="middle"))
-                choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline]")
+                choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline] to watch")
                 if not choice.strip():
                     break
                 if choice.isdigit() and 1 <= int(choice) <= len(videos):

@@ -6,7 +6,6 @@ import subprocess
 import feedparser
 import requests
 import concurrent.futures
-from colorama import Fore, Style
 from rich.console import Console
 import threading
 from datetime import datetime
@@ -217,41 +216,27 @@ class FeedManager:
         on duration and live status, updates the cache, and returns the list of videos.
         """
         try:
-            # Load existing cache
             video_cache = self.channel_extractor.load_cache(CACHE_FILE)
-
             if not feed.entries:
-                print(Fore.RED + "No entries found in the feed.")
+                self._log("No entries found in the feed.")
                 return []
-
-            # Collect video IDs to fetch details for
             video_ids_to_fetch = []
             cached_videos = []
             need_api_request = False
-
             for entry in feed.entries:
                 if "id" not in entry or ":" not in entry.id:
-                    print(Fore.YELLOW + f"Skipping invalid entry: {entry}")
+                    self._log(f"Skipping invalid entry: {entry}")
                     continue
-
                 video_id = entry.id.split(":")[-1]
-                
-                # Check if video details are already in cache
                 if video_id in video_cache:
                     cached_video = video_cache[video_id]
-                    
-                    # Validate cached video meets current criteria
                     total_seconds = cached_video.get('duration_seconds', 0)
                     published_date = cached_video.get('published')
-
                     if (self.config.get("min_video_length", 2) * 60 <= total_seconds <= MAX_SECONDS and 
                         cached_video.get('live_broadcast_content') not in ["live", "upcoming"]):
-                        
                         try:
-                            # Convert string to datetime if needed
                             if isinstance(published_date, str):
                                 published_date = datetime.strptime(published_date, "%Y-%m-%dT%H:%M:%S%z")
-                            
                             cached_videos.append({
                                 "title": self.remove_emojis(entry.title),
                                 "link": entry.link,
@@ -261,43 +246,33 @@ class FeedManager:
                                 "duration_seconds": total_seconds,
                             })
                         except ValueError:
-                            print(f"Invalid date format for cached entry: {published_date}")
+                            self._log(f"Invalid date format for cached entry: {published_date}")
                             video_ids_to_fetch.append(video_id)
                 else:
                     video_ids_to_fetch.append(video_id)
                     need_api_request = True
-
             if not need_api_request:
                 return cached_videos
-
-            # Fetch details for uncached videos
             if video_ids_to_fetch:
                 try:
                     video_response = self.channel_extractor.youtube.videos().list(
                         part="contentDetails",
                         id=','.join(video_ids_to_fetch)
                     ).execute()
-
                     if "items" not in video_response or not video_response["items"]:
-                        print(Fore.RED + "No video details found in the API response.")
+                        self._log("No video details found in the API response.")
                         return cached_videos
-
-                    # Process new videos and update cache
                     for entry in feed.entries:
                         video_id = entry.id.split(":")[-1]
                         if video_id not in video_ids_to_fetch:
                             continue
-
                         items = [item for item in video_response.get("items", []) if item["id"] == video_id]
                         if not items:
                             continue
-                        
                         item = items[0]
                         duration = item["contentDetails"]["duration"]
                         total_seconds = self.iso_duration_to_seconds(duration)
                         live_broadcast_content = item.get("liveBroadcastContent")
-                        
-                        # Cache the video details
                         cache_data = self.channel_extractor.load_cache(CACHE_FILE)
                         if video_id not in cache_data:
                             video_cache[video_id] = {
@@ -306,20 +281,15 @@ class FeedManager:
                                 'published': entry.published
                             }
                         self.channel_extractor.save_cache(cache_data, CACHE_FILE)                        
-                    
                         if live_broadcast_content in ["live", "upcoming"]:
-                            continue  # Skip streams and upcoming broadcasts
-
+                            continue
                         if total_seconds < self.config.get("min_video_length", 2) * 60 or total_seconds > MAX_SECONDS:
                             continue
-                        
                         try:
                             published_date = datetime.strptime(entry.published, "%Y-%m-%dT%H:%M:%S%z")
                         except ValueError:
-                            print(f"Invalid date format for entry: {entry.published}")
+                            self._log(f"Invalid date format for entry: {entry.published}")
                             continue
-
-                        # Add to videos list
                         cached_videos.append({
                             "title": self.remove_emojis(entry.title),
                             "link": entry.link,
@@ -328,20 +298,14 @@ class FeedManager:
                             "author": entry.author if 'author' in entry else "Unknown",
                             "duration_seconds": total_seconds,
                         })
-
-                    # Save updated cache
                     self.channel_extractor.save_cache(video_cache, CACHE_FILE)
-
                     return cached_videos
-
                 except HttpError as e:
-                    print(Fore.RED + f"Error fetching video details: {e}")
+                    self._log(f"Error fetching video details: {e}")
                     return cached_videos
-
             return cached_videos
-
         except Exception as e:
-            print(Fore.RED + f"Error fetching videos for channel {channel_id}: {str(e)}")
+            self._log(f"Error fetching videos for channel {channel_id}: {str(e)}")
             return []
 
     def search_youtube_videos(self, search_query: str) -> List[Dict]:
@@ -387,10 +351,10 @@ class FeedManager:
                 })
             return videos
         except HttpError as e:
-            print(Fore.RED + f"An HTTP error occurred: {e}")
+            self._log(f"An HTTP error occurred: {e}")
             return []
         except Exception as e:
-            print(Fore.RED + f"An error occurred: {e}")
+            self._log(f"An error occurred: {e}")
             return []
 
     def open_video_instance(self, link: str) -> None:
