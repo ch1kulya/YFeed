@@ -26,7 +26,7 @@ class MediaPlayer:
 
         If downloading fails, it attempts to open the video in a web browser.
         """
-        self.interface.draw_logo("Media Loader")
+        self.interface.draw_heading("Media Loader")
         if 'v=' in url:
             temp_file = 'video-' + url.split('v=')[1][:11] + '.webm'
         elif '=' in url:

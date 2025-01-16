@@ -13,6 +13,7 @@ from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.align import Align
 from rich.table import Table
+from rich.markdown import Markdown
 from rich import box
 import re
 import sys
@@ -167,27 +168,16 @@ class Interface:
             return f"{int(days)}d ago"
         return f"{int(days / 365)}y ago"
     
-    def draw_logo(self, text) -> None:
-        """Display the application logo with a gradient color effect.
+    def draw_heading(self, text) -> None:
+        """Display the heading.
 
         Args:
-            text (str): Additional text to display alongside the logo.
+            text (str): Text to display.
 
-        This method clears the terminal screen, creates a logo with the specified text,
-        applies a gradient color, and centers it on the screen.
+        This method clears the terminal screen, creates a heading with the specified text.
         """
         os.system("cls" if os.name == "nt" else "clear")
-        logo_text = "YFeed " + text
-        logo = pyfiglet.figlet_format(logo_text, font='slant', width=self.terminal_width)
-        gradient_logo = self.gradient_color(
-            logo,
-            (255, 255, 0),  # Yellow
-            (255, 69, 0)    # Red-Orange
-        )
-        print(3 * "\n")
-        for line in gradient_logo.split('\n'):
-            print(self.center_text(line))
-        print("\n")
+        self.console.print(Padding(Markdown(f"# {text}", style="b white"), (2, 30, 1, 30), expand=False))
     
     def input_prompt(self, prompt: str) -> str:
         """Display an input prompt to the user and return their input.
@@ -201,14 +191,13 @@ class Interface:
         return input(f"{prompt}: {Style.RESET_ALL}")
     
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
-        """Display a message to the user in a specified color and wait for them to press Enter.
+        """Display a message to the user in a specified color and wait for them to press F.
 
         Args:
             message (str): The message to display.
-            color (str, optional): The color to display the message in. Defaults to Fore.WHITE.
+            color (str, optional): The color to display the message in.
         """
-        #print(f"{color}{message}{Style.RESET_ALL}")
-        panel = Panel.fit(Padding(f"[{color}]{message}[/{color}]", (3, 18), expand=False), title="Message", subtitle="Press [b yellow]F[/b yellow] to continue")
+        panel = Panel.fit(Padding(f"[{color}]{message}[/{color}]", (2, 18), expand=False), title="Message", subtitle="Press [b yellow]F[/b yellow] to continue")
         self.console.print(Align.center(panel, vertical="middle"))
         while True:
             selection = getch()
@@ -221,7 +210,7 @@ class Interface:
         Returns:
             str: The user's menu selection as a string.
         """
-        self.draw_logo("Home")
+        self.draw_heading("Home")
         options = [
             (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}4{Fore.WHITE}. Subscribe            {Fore.YELLOW}7{Fore.WHITE}. Days filter  "),
             (f"{Fore.YELLOW}2{Fore.WHITE}. Search               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
@@ -245,7 +234,7 @@ class Interface:
         and allows the user to select a video to watch.
         """
         if self.manager.channels:
-            self.draw_logo("Video List")
+            self.draw_heading("Video Fetcher")
             videos = []
             parsed_feeds = self.manager.parse_feeds(self.manager.channels)
             with self.console.status(" " * 9 + "[b green]Fetching videos..."):
@@ -261,8 +250,7 @@ class Interface:
             self.manager._log(f"[b green]Fetched successfully.")
             sleep(0.3)
             while True:
-                os.system("cls" if os.name == "nt" else "clear")
-                self.draw_logo("Video List")
+                self.draw_heading("Video List")
                 table = Table(box=box.ROUNDED)
                 table.add_column("#", justify="center")
                 table.add_column("Title")
@@ -303,6 +291,7 @@ class Interface:
                         self.manager.save_watched()
                     self.manager.open_video_instance(video["link"])
         else:
+            self.draw_heading("Video Fetcher")
             self.show_message("Please add at least one channel first!", "yellow")
 
     def add_channel(self) -> None:
@@ -322,12 +311,11 @@ class Interface:
                     self.show_message(f"Error: {str(e)}", "red")
         else:
             self.show_message("Please set YouTube API key in settings first!", "yellow")
-
-
+            
     def list_channels(self) -> None:
         """List all managed YouTube channels."""
         if self.manager.channels:
-            self.draw_logo("Channels")
+            self.draw_heading("Channel List")
             table = Table(box=box.ROUNDED)
             for _ in range(0, 2):
                 table.add_column("#", justify="center")
@@ -346,14 +334,25 @@ class Interface:
                         row_data.extend(["", "", ""])
                 table.add_row(*row_data)
             self.console.print(Align.center(table, vertical="middle"))
-            input()
+            choice = Prompt.ask("\n" + " " * 9 + "Select channel [underline]index[/underline] to see info")
+            if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
+                channel_index = int(choice) - 1
+                channel_id = self.manager.channels[channel_index]
+                channel_info = self.manager.channel_extractor.get_channel_info(channel_id)
+                if channel_info:
+                    self.draw_heading("Channel Info")
+                    self.show_message(f"[b yellow]Channel Name:[/b yellow] {channel_info['title']}\n[b yellow]Description:[/b yellow] {channel_info['description']}\n[b yellow]Subscribers:[/b yellow] {channel_info['subscribers']}\n[b yellow]Total videos:[/b yellow] {channel_info['total_videos']}\n[b yellow]URL:[/b yellow] {channel_info['url']}", "white")
+                elif choice:
+                    self.draw_heading("Channel List")
+                    self.show_message("Invalid input.", "red")
         else:
+            self.draw_heading("Channel List")
             self.show_message("No channels added yet!", "yellow")
 
     def remove_channels(self) -> None:
         """Remove one YouTube channels from the manager."""
         if self.manager.channels:
-            self.draw_logo("Channels")
+            self.draw_heading("Remove Channel")
             table = Table(box=box.ROUNDED)
             for _ in range(0, 2):
                 table.add_column("#", justify="center", style="b red")
@@ -376,48 +375,52 @@ class Interface:
             if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                 self.manager.channels.pop(int(choice) - 1)
                 self.manager.save_channels()
+                self.draw_heading("Remove Channel")
+                self.show_message("Channel removed!", "green")
             elif choice:
+                self.draw_heading("Remove Channel")
                 self.show_message("Invalid input.", "red")
         else:
+            self.draw_heading("Remove Channel")
             self.show_message("No channels to remove!", "yellow")
 
     def days_filter(self) -> None:
         """Manage the filter for the number of days."""
-        self.draw_logo("Settings")
+        self.draw_heading("Set Day Filter")
         answer = Prompt.ask("\n" + " " * 9 + f"Enter the [underline]number[/underline] of days [cyan](currently {self.manager.config['days_filter']} days)[/cyan]")
         days = ''.join([char for char in answer if char.isdigit()])
         if days.isdigit() and int(days) > 0:
             self.manager.config["days_filter"] = int(days)
             self.manager.save_config()
-            self.draw_logo("Settings")
+            self.draw_heading("Set Day Filter")
             self.show_message("Settings updated!", "green")
         elif days.strip():
-            self.draw_logo("Settings")
+            self.draw_heading("Set Day Filter")
             self.show_message("Invalid input", "red")
             
     def length_filter(self) -> None:
         """Manage the minimum video length filter."""
-        self.draw_logo("Settings")
+        self.draw_heading("Set Length Filter")
         answer = Prompt.ask("\n" + " " * 9 + f"Enter the [underline]number[/underline] of minutes [cyan](currently {self.manager.config['min_video_length']} minutes)[/cyan]")
         new_length = ''.join([char for char in answer if char.isdigit()])
         if new_length.isdigit() and int(new_length) > 0:
             self.manager.config["min_video_length"] = int(new_length)
             self.manager.save_config()
-            self.draw_logo("Settings")
+            self.draw_heading("Set Length Filter")
             self.show_message("Settings updated!", "green")
         elif new_length.strip():
-            self.draw_logo("Settings")
+            self.draw_heading("Set Length Filter")
             self.show_message("Invalid input", "red")
 
     def manage_api(self) -> None:
         """Manage the YouTube API key."""
-        self.draw_logo("Settings")
+        self.draw_heading("Set YouTube API Key")
         answer = Prompt.ask("\n" + " " * 9 + f"Enter the YouTube API Key [cyan](currently {'*' * 8 if self.manager.config.get('api_key') else 'Not Set'})[/cyan]")
         if answer.strip():
             api_key = max(answer.split(), key=len)
             api_key_pattern = re.compile(r"^[A-Za-z0-9_-]{39}$")
             if not api_key_pattern.match(api_key.strip()):
-                self.draw_logo("Settings")
+                self.draw_heading("Set YouTube API Key")
                 self.show_message("Invalid API Key format.", "red")
                 return
             try:
@@ -425,17 +428,17 @@ class Interface:
                 self.manager.channel_extractor.youtube.videos().list(part="id", id="dQw4w9WgXcQ").execute() # dQw4w9WgXcQ is the Rickroll :D
                 self.manager.config["api_key"] = api_key.strip()
                 self.manager.save_config()
-                self.draw_logo("Settings")
+                self.draw_heading("Set YouTube API Key")
                 self.show_message("API Key updated!", "green")
             except HttpError as e:
                 if e.resp.status == 401:
-                    self.draw_logo("Settings")
+                    self.draw_heading("Set YouTube API Key")
                     self.show_message(f"Invalid API Key. Error: {e}", "red")
                 else:
-                    self.draw_logo("Settings")
+                    self.draw_heading("Set YouTube API Key")
                     self.show_message(f"Error validating API Key: {e}", "red")
             except Exception as e:
-                self.draw_logo("Settings")
+                self.draw_heading("Set YouTube API Key")
                 self.show_message(f"Error validating API Key: {e}", "red")
     
     def search_menu(self) -> None:
@@ -443,7 +446,7 @@ class Interface:
         and allows the user to select a video to watch.
         """
         if self.manager.config.get('api_key'):
-            self.draw_logo("Search")
+            self.draw_heading("Video Search")
             query = self.input_prompt(f"{Fore.WHITE}Enter search {Fore.YELLOW}query{Fore.WHITE}")
             index_width, channel_width, time_width = 1, 25, 15
             remaining_width = self.terminal_width - (index_width + time_width + channel_width)
@@ -458,7 +461,7 @@ class Interface:
                 f"{'Duration'.ljust(time_width)}{Style.RESET_ALL}"
             )
             if query.strip():
-                self.draw_logo("Search")
+                self.draw_heading("Search")
                 results = self.manager.search_youtube_videos(query)
                 if not results:
                     self.show_message("No videos matching your filters were found.", "yellow")
@@ -491,11 +494,12 @@ class Interface:
                         self.manager.save_watched()
                         self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
         else:
+            self.draw_heading("Video Search")
             self.show_message("Please set YouTube API key in settings first!", "red")
 
     def watched_history(self) -> None:
         """Displays browsing history"""
-        self.draw_logo("History")
+        self.draw_heading("Watch History")
         watched_videos = [dict(item) for item in self.manager.watched]
         if not watched_videos:
             self.show_message("No videos watched yet.", "yellow")
