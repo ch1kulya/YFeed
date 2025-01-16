@@ -61,32 +61,12 @@ class Interface:
         The greeting is based on the current time of day and is rendered using ASCII art with gradient colors.
         """
         greeting = f"Good {['Night', 'Morning', 'Afternoon', 'Evening'][(datetime.now().hour // 6)]}!"
-        greeting_art = pyfiglet.figlet_format(greeting, font='slant', width=self.terminal_width)
-        gradient_art = self.gradient_color(
-            greeting_art,
-            (255, 200, 255),
-            (255, 99, 255)
-        )
-        print("\n")
+        greeting_art = pyfiglet.figlet_format(greeting, font='slant')
+        gradient_art = self.gradient_color(greeting_art, (255, 200, 255), (255, 99, 255))
         for line in gradient_art.split('\n'):
-            print(self.center_text(line))
-        print("\n")
-        sleep(1)
+            print(line)
+        sleep(0.7)
         os.system("cls" if os.name == "nt" else "clear")
-                
-    def center_text(self, text):
-        """Center the given text horizontally in the terminal.
-
-        Args:
-            text (str): The text to be centered.
-
-        Returns:
-            str: The centered text with appropriate padding.
-        """
-        stripped_text = re.sub(r'\x1b\[[0-9;]*m', '', text)
-        text_length = len(stripped_text)
-        padding = (self.terminal_width - text_length) // 2
-        return ' ' * max(padding, 0) + text
             
     def shut_down(self):
         """Perform cleanup actions and display a goodbye message.
@@ -96,22 +76,19 @@ class Interface:
         """
         os.system("cls" if os.name == "nt" else "clear")
         webm_files = glob.glob(os.path.join(".", "*.webm"))
-        for file in webm_files:
-            try:
-                os.remove(file)
-                print(f"Deleted: {file}")
-            except Exception as e:
-                print(f"Error deleting {file}: {e}")
-        goodbye_art = pyfiglet.figlet_format("Goodbye!", font='slant', width=self.terminal_width)
-        gradient_art = self.gradient_color(
-            goodbye_art,
-            (255, 255, 255),
-            (255, 69, 255)
-        )
-        print("\n")
+        if webm_files:
+            for file in webm_files:
+                try:
+                    os.remove(file)
+                    self.console.print(f"Deleted: {file}")
+                except Exception as e:
+                    self.console.print(f"Error deleting {file}: {e}")
+        else:
+            self.console.print("Nothing to clean.\n")
+        goodbye_art = pyfiglet.figlet_format("Goodbye!", font='slant')
+        gradient_art = self.gradient_color(goodbye_art, (255, 255, 255), (255, 69, 255))
         for line in gradient_art.split('\n'):
-            print(self.center_text(line))
-        print("\n")
+            print(line)
     
     def format_title(self, title: str) -> str:
         cutoff_index = len(title)
@@ -218,9 +195,9 @@ class Interface:
         ]
     
         for option in options:
-            print(self.center_text(option))
+            print(option)
         print("\n")
-        print(self.center_text(f"{Fore.WHITE}Press a number [{Fore.YELLOW}1{Fore.WHITE}-{Fore.YELLOW}9{Fore.WHITE}] to choose an [{Fore.YELLOW}option{Fore.WHITE}] or [{Fore.RED}q{Fore.WHITE}] to terminate "))
+        print(f"{Fore.WHITE}Press a number [{Fore.YELLOW}1{Fore.WHITE}-{Fore.YELLOW}9{Fore.WHITE}] to choose an [{Fore.YELLOW}option{Fore.WHITE}] or [{Fore.RED}q{Fore.WHITE}] to terminate ")
         print("\n")
         while True:
             selection = getch()
