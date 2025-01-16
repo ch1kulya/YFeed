@@ -99,7 +99,7 @@ class Interface:
             str: Cleared title.
         """
         cutoff_index = len(title)
-        for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
+        for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-", "and", "&", "и"]:
             index, addition = title.find(char), ""
             if 16 <= index < cutoff_index:
                 cutoff_index = index
@@ -427,40 +427,29 @@ class Interface:
         """
         if self.manager.config.get('api_key'):
             self.draw_heading("Video Search")
-            query = self.input_prompt(f"{Fore.WHITE}Enter search {Fore.YELLOW}query{Fore.WHITE}")
-            index_width, channel_width, time_width = 1, 25, 15
-            remaining_width = self.terminal_width - (index_width + time_width + channel_width)
-            title_width = int(remaining_width * 0.85)
-            separator = (
-                "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
-            )
-            header = (
-                f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
-                f"{'Title'.ljust(title_width)} {Fore.WHITE}│{Fore.CYAN} "
-                f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
-                f"{'Duration'.ljust(time_width)}{Style.RESET_ALL}"
-            )
+            query = Prompt.ask("\n" + " " * 9 + f"Enter the search query")
             if query.strip():
                 self.draw_heading("Search")
                 results = self.manager.search_youtube_videos(query)
                 if not results:
                     self.show_message("No videos matching your filters were found.", "yellow")
                     return
-                print(header)
-                print(separator)
-                for idx, video in enumerate(results[:8], start=1):
+                table = Table(box=box.ROUNDED, header_style="bold magenta")
+                table.add_column("[white]#", justify="center")
+                table.add_column("Title", style="white")
+                table.add_column("Channel", justify="center", style="b white")
+                table.add_column("Duration", justify="right", style="b white")
+                table.add_column("Published", justify="right", style="italic white")
+                for idx, video in enumerate(results[:15], start=1):
                     title = self.format_title(video["title"])
                     channel_name = video.get("author", "Unknown Channel")
-                    if len(channel_name) > channel_width - 3:
-                        channel_name = channel_name[:channel_width - 3] + "..."
                     duration = f"{round(video['duration'] / 60)} min"
-                    print(
-                        f"{str(idx).rjust(index_width)} │ "
-                        f"{title.ljust(title_width)} {Fore.WHITE}│ "
-                        f"{channel_name.ljust(channel_width)} {Fore.WHITE}│ "
-                        f"{duration.ljust(time_width)}{Style.RESET_ALL}"
-                    )
-                choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+                    published = video["published"]
+                    delta = datetime.now(published.tzinfo) - published
+                    time_ago = self.format_time_ago(delta)
+                    table.add_row(str(idx + 1), title, channel_name, duration, time_ago)
+                self.console.print(Align.center(table, vertical="middle"))
+                choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline] to watch")
                 if choice.isdigit() and 1 <= int(choice) <= len(results):
                     video = results[int(choice) - 1]
                     video_details = {
@@ -472,7 +461,7 @@ class Interface:
                     if video_details:
                         self.manager.watched.add(tuple(video_details.items()))
                         self.manager.save_watched()
-                        self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
+                    self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video["id"]}")
         else:
             self.draw_heading("Video Search")
             self.show_message("Please set YouTube API key in settings first!", "red")

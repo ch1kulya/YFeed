@@ -323,7 +323,7 @@ class FeedManager:
                 q=search_query,
                 part='id,snippet',
                 type='video',
-                maxResults=16
+                maxResults=30
             ).execute()
             video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
             if not video_ids:
@@ -343,9 +343,11 @@ class FeedManager:
                     continue
                 if (duration < self.config.get("min_video_length", 2) * 60) or (duration > MAX_SECONDS):
                     continue
+                published_date = datetime.strptime(item['snippet'].get('publishedAt'), "%Y-%m-%dT%H:%M:%S%z")
                 videos.append({
                     "id": item['id'],
                     "title": self.remove_emojis(title),
+                    "published": published_date,
                     "duration": duration,
                     "author": channel_title
                 })
