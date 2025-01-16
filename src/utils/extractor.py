@@ -148,7 +148,7 @@ class Extractor:
             cached_names.update(new_names)
 
         except HttpError as e:
-            print(f"YouTube API error: {str(e)}")
+            raise ValueError(f"YouTube API error: {str(e)}")
 
         for cid in remaining_ids:
             cached_names.setdefault(cid, "Unknown")
@@ -190,5 +190,4 @@ class Extractor:
             return channel_info
 
         except HttpError as e:
-            print(f"YouTube API error: {str(e)}")
-            return None
+            raise ValueError(f"YouTube API error: {str(e)}")
