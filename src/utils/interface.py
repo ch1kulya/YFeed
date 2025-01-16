@@ -274,19 +274,25 @@ class Interface:
     def add_channel(self) -> None:
         """Add a YouTube channel to the manager."""
         if self.manager.config.get('api_key'):
-            link = self.input_prompt(f"{Fore.WHITE}Enter YouTube channel {Fore.YELLOW}link{Fore.WHITE} or {Fore.YELLOW}handle{Fore.WHITE}")
-            if link.strip():
+            self.draw_heading("Add New Channel")
+            answer = Prompt.ask("\n" + " " * 9 + f"Enter the YouTube channel [underline]link[/underline] or [underline]handle[/underline]")
+            if answer.strip():
                 try:
-                    channel_id = self.manager.channel_extractor.get_channel_id(link)
+                    channel_id = self.manager.channel_extractor.get_channel_id(answer)
                     if channel_id not in self.manager.channels:
                         self.manager.channels.append(channel_id)
                         self.manager.save_channels()
                         self.channel_map = self.manager.channel_extractor.get_channel_names(self.channel_ids)
+                        self.draw_heading("Add New Channel")
+                        self.show_message("New channel added!", "green")
                     else:
+                        self.draw_heading("Add New Channel")
                         self.show_message("Channel already exists.", "yellow")
                 except Exception as e:
+                    self.draw_heading("Add New Channel")
                     self.show_message(f"Error: {str(e)}", "red")
         else:
+            self.draw_heading("Add New Channel")
             self.show_message("Please set YouTube API key in settings first!", "yellow")
             
     def list_channels(self) -> None:
