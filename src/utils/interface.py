@@ -127,7 +127,7 @@ class Interface:
             g = int(start_color[1] + (end_color[1] - start_color[1]) * i / len(text))
             b = int(start_color[2] + (end_color[2] - start_color[2]) * i / len(text))
             result += f"\033[38;2;{r};{g};{b}m{char}"
-        result += "\033[0m"
+            result += "\033[0m"
         return result
     
     def format_time_ago(self, delta: timedelta) -> str:
@@ -170,8 +170,8 @@ class Interface:
             message (str): The message to display.
             color (str, optional): The color to display the message in.
         """
-        panel = Panel.fit(Padding(f"[{color}]{message}[/{color}]", (2, 18), expand=False), title="Message", subtitle="Press [b yellow]F[/b yellow] to continue")
-        self.console.print(Align.center(panel, vertical="middle"))
+        panel = Panel(Align.center(Padding(f"[{color}]{message}[/{color}]", (2, 5), expand=False), vertical="middle"), title="Message", subtitle="Press [b yellow]F[/b yellow] to continue", expand=True)
+        self.console.print(Align.center(Padding(panel, (0, 2), expand=False), vertical="middle"))
         while True:
             selection = getch()
             if selection == 'f':
