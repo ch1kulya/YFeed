@@ -162,7 +162,7 @@ class Interface:
         This method clears the terminal screen, creates a heading with the specified text.
         """
         os.system("cls" if os.name == "nt" else "clear")
-        self.console.print(Padding(Markdown(f"# {text}", style="b white"), (2, 30, 1, 30), expand=False))
+        self.console.print(Padding(Markdown(f"## {text}", style="b white"), (2, 30, 1, 30), expand=False))
     
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
         """Display a message to the user in a specified color and wait for them to press F.
@@ -185,17 +185,22 @@ class Interface:
             str: The user's menu selection as a string.
         """
         self.draw_heading("Home")
-        options = [
-            (f"{Fore.YELLOW}1{Fore.WHITE}. Fetch latest         {Fore.YELLOW}4{Fore.WHITE}. Subscribe            {Fore.YELLOW}7{Fore.WHITE}. Days filter  "),
-            (f"{Fore.YELLOW}2{Fore.WHITE}. Search               {Fore.YELLOW}5{Fore.WHITE}. Channel list         {Fore.YELLOW}8{Fore.WHITE}. Length filter"),
-            (f"{Fore.YELLOW}3{Fore.WHITE}. History              {Fore.YELLOW}6{Fore.WHITE}. Unsubscribe          {Fore.YELLOW}9{Fore.WHITE}. Set API key  ")
-        ]
-    
-        for option in options:
-            print(option)
-        print("\n")
-        print(f"{Fore.WHITE}Press a number [{Fore.YELLOW}1{Fore.WHITE}-{Fore.YELLOW}9{Fore.WHITE}] to choose an [{Fore.YELLOW}option{Fore.WHITE}] or [{Fore.RED}q{Fore.WHITE}] to terminate ")
-        print("\n")
+        table = Table(box=box.ROUNDED, header_style="bold magenta")
+        table.add_column("[white]Bind", justify="center")
+        table.add_column("Option", justify="center", style="b white")
+        table.add_column("Description", style="dim")
+        table.add_row("1", "Fetch", "Fetches the latest released videos that match the filters from your channels.")
+        table.add_row("2", "Search", "Searches for videos on YouTube based on your search query. Only the length filter works here.")
+        table.add_row("3", "History", "Shows your watched videos with a time stamp. Allows you to rewatch already viewed ones.")
+        table.add_row("4", "Subscribe", "Adds a new channel via link or handle to the managed list.")
+        table.add_row("5", "Subscriptions", "Used to get a list of channels to which you are subscribed with information about them.")
+        table.add_row("6", "Unsubscribe", "Allows you to remove an unnecessary channel from the managed list.")
+        table.add_row("7", "Days filter", "Required to filter video novelty in days.")
+        table.add_row("8", "Length filter", "Sets the minimum video length in minutes. Videos below the value will not be allowed.")
+        table.add_row("9", "Set API key", "Manages your API key. Instructions for obtaining an API key can be found in the README.")
+        table.add_row("[red]q", "Shutdown", "Correctly closes the program and cleans all downloaded videos.")
+        self.console.print(Align.center(table, vertical="middle"))    
+        self.console.print("\n" + " " * 9 + "Click the appropriate [underline]button[/underline] to select an option.")
         while True:
             selection = getch()
             if selection in '123456789q':
@@ -225,8 +230,8 @@ class Interface:
             sleep(0.3)
             while True:
                 self.draw_heading("Video List")
-                table = Table(box=box.ROUNDED)
-                table.add_column("#", justify="center")
+                table = Table(box=box.ROUNDED, header_style="bold magenta")
+                table.add_column("[white]#", justify="center")
                 table.add_column("Title")
                 table.add_column("Channel", justify="center", style="b")
                 table.add_column("Duration", justify="right", style="b")
@@ -296,9 +301,9 @@ class Interface:
         """List all managed YouTube channels."""
         if self.manager.channels:
             self.draw_heading("Channel List")
-            table = Table(box=box.ROUNDED)
+            table = Table(box=box.ROUNDED, header_style="bold magenta")
             for _ in range(0, 2):
-                table.add_column("#", justify="center")
+                table.add_column("[white]#", justify="center")
                 table.add_column("Channel", justify="center", style="b white")
                 table.add_column("YouTube ID", justify="center", style="dim italic")
             num_channels = len(self.channel_ids)
@@ -333,9 +338,9 @@ class Interface:
         """Remove one YouTube channels from the manager."""
         if self.manager.channels:
             self.draw_heading("Remove Channel")
-            table = Table(box=box.ROUNDED)
+            table = Table(box=box.ROUNDED, header_style="bold magenta")
             for _ in range(0, 2):
-                table.add_column("#", justify="center", style="b red")
+                table.add_column("[white]#", justify="center", style="b red")
                 table.add_column("Channel", justify="center", style="b white")
                 table.add_column("YouTube ID", justify="center", style="dim italic")
             num_channels = len(self.channel_ids)
