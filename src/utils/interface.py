@@ -127,6 +127,7 @@ class Interface:
             g = int(start_color[1] + (end_color[1] - start_color[1]) * i / len(text))
             b = int(start_color[2] + (end_color[2] - start_color[2]) * i / len(text))
             result += f"\033[38;2;{r};{g};{b}m{char}"
+        result += "\033[0m"
         return result
     
     def format_time_ago(self, delta: timedelta) -> str:
@@ -244,8 +245,8 @@ class Interface:
                     duration = f"{round(video['duration_seconds'] / 60)} min"
                     watched_videos = [dict(watched_video) for watched_video in self.manager.watched]
                     if any(video["id"] == watched_video["id"] for watched_video in watched_videos):
-                        color = "grey"
-                        color_time = "grey"
+                        color = "dim"
+                        color_time = "dim"
                     elif delta.days == 0:
                         color_time = "yellow"
                     elif delta.days == 1:
