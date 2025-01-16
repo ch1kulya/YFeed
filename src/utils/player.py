@@ -64,21 +64,19 @@ class MediaPlayer:
 
         try:
             if os.path.exists(temp_file):
-                print(f"Video already downloaded: {temp_file}")
+                self.manager._log(f"Video already downloaded: {temp_file}")
             else:
                 with YoutubeDL(ydl_opts) as ydl:
-                    print("Downloading video...")
+                    self.manager._log("Downloading video...")
                     ydl.download([url])
-            
-            # Play the video using mpv
-            print(f"Playing {temp_file}...")
+            self.manager._log(f"Playing {temp_file}...")
             self.play_video(temp_file)
             
         except Exception as e:
-            print(f"An error occurred: {e}")
+            self.manager._log(f"An error occurred: {e}")
             if os.path.exists(temp_file):
                 os.remove(temp_file)
-                print("Temporary file removed.")
+                self.manager._log("Temporary file removed.")
             sleep(1)
                 
     def play_video(self, video_file):
@@ -110,9 +108,10 @@ class MediaPlayer:
             subprocess.Popen(
                 mpv_command, stdout=None, stderr=None
             )
-            print("Video playback started successfully.")
+            self.manager._log("Video playback started successfully.")
         except FileNotFoundError:
-            print(f"Error: mpv not found, make sure it is installed on this system.")
+            self.manager._log(f"Error: mpv not found, make sure it is installed on this system.")
+            sleep(1)
         except Exception as e:
-            print(f"Error starting mpv: {e}")
+            self.manager._log(f"Error starting mpv: {e}")
             sleep(1)
