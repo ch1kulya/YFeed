@@ -91,6 +91,14 @@ class Interface:
             print(line)
     
     def format_title(self, title: str) -> str:
+        """Perform title clean up.
+        
+        Args:
+            text (str): The text to format.
+
+        Returns:
+            str: Cleared title.
+        """
         cutoff_index = len(title)
         for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-"]:
             index, addition = title.find(char), ""
@@ -155,17 +163,6 @@ class Interface:
         """
         os.system("cls" if os.name == "nt" else "clear")
         self.console.print(Padding(Markdown(f"# {text}", style="b white"), (2, 30, 1, 30), expand=False))
-    
-    def input_prompt(self, prompt: str) -> str:
-        """Display an input prompt to the user and return their input.
-
-        Args:
-            prompt (str): The prompt message to display to the user.
-
-        Returns:
-            str: The user's input as a string.
-        """
-        return input(f"{prompt}:")
     
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
         """Display a message to the user in a specified color and wait for them to press F.
