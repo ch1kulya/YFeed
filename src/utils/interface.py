@@ -121,7 +121,7 @@ class Interface:
             g = int(start_color[1] + (end_color[1] - start_color[1]) * i / len(text))
             b = int(start_color[2] + (end_color[2] - start_color[2]) * i / len(text))
             result += f"\033[38;2;{r};{g};{b}m{char}"
-        return result + Style.RESET_ALL
+        return result
     
     def format_time_ago(self, delta: timedelta) -> str:
         """Format a timedelta object into a human-readable 'time ago' string.
@@ -165,7 +165,7 @@ class Interface:
         Returns:
             str: The user's input as a string.
         """
-        return input(f"{prompt}: {Style.RESET_ALL}")
+        return input(f"{prompt}:")
     
     def show_message(self, message: str, color: str = Fore.WHITE) -> None:
         """Display a message to the user in a specified color and wait for them to press F.
