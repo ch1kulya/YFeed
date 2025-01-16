@@ -244,8 +244,8 @@ class Interface:
                     duration = f"{round(video['duration_seconds'] / 60)} min"
                     watched_videos = [dict(watched_video) for watched_video in self.manager.watched]
                     if any(video["id"] == watched_video["id"] for watched_video in watched_videos):
-                        color = "grey"
-                        color_time = "grey"
+                        color = "dim"
+                        color_time = "dim"
                     elif delta.days == 0:
                         color_time = "yellow"
                     elif delta.days == 1:
