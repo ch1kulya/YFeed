@@ -1,11 +1,7 @@
-from colorama import Fore, init
 from utils.interface import Interface
 from utils.manager import FeedManager
 import shutil
 import sys
-from time import sleep
-
-init(autoreset=True)
 
 def check_dependencies():
     """Checks if required binaries are installed and available in the system's PATH.
@@ -31,7 +27,6 @@ def main():
     manager = FeedManager()
     interface = Interface(manager)
     interface.greet()
-
     actions = {
         "1": interface.videos_menu,
         "2": interface.search_menu,
@@ -44,18 +39,15 @@ def main():
         "9": interface.manage_api,
         "q": interface.shut_down
     }
-
     while True:
         choice = interface.main_menu()
         action = actions.get(choice)
-
         if action:
             action()
-            sleep(0.3)
             if choice == "q":
                 break
         elif choice:
-            interface.show_message("Invalid choice!", Fore.RED)
+            interface.show_message("Invalid choice!", "red")
 
 if __name__ == "__main__":
     main()

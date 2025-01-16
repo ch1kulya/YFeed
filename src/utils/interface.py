@@ -1,4 +1,6 @@
 import os
+import re
+import sys
 import glob
 import pyfiglet
 from time import sleep
@@ -14,8 +16,6 @@ from rich.align import Align
 from rich.table import Table
 from rich.markdown import Markdown
 from rich import box
-import re
-import sys
 
 def getch():
     """Get single symbol from keyboard without input."""

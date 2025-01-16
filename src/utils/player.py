@@ -2,7 +2,6 @@ import os
 import subprocess
 from time import sleep
 from yt_dlp import YoutubeDL
-from colorama import Fore, Style
 from utils.interface import Interface
 from utils.manager import FeedManager
 
@@ -76,10 +75,10 @@ class MediaPlayer:
             self.play_video(temp_file)
             
         except Exception as e:
-            print(Fore.RED + f"An error occurred: {e}")
+            print(f"An error occurred: {e}")
             if os.path.exists(temp_file):
                 os.remove(temp_file)
-                print(Style.DIM + "Temporary file removed.")
+                print("Temporary file removed.")
             sleep(1)
                 
     def play_video(self, video_file):
