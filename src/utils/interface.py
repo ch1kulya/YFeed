@@ -127,6 +127,7 @@ class Interface:
             g = int(start_color[1] + (end_color[1] - start_color[1]) * i / len(text))
             b = int(start_color[2] + (end_color[2] - start_color[2]) * i / len(text))
             result += f"\033[38;2;{r};{g};{b}m{char}"
+        result += "\033[0m"
         return result
     
     def format_time_ago(self, delta: timedelta) -> str:
