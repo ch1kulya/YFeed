@@ -3,7 +3,6 @@ import glob
 import pyfiglet
 from time import sleep
 from datetime import datetime, timedelta
-from colorama import Fore, Style
 from googleapiclient.errors import HttpError
 from utils.manager import FeedManager
 from utils.extractor import Extractor
@@ -163,7 +162,7 @@ class Interface:
         os.system("cls" if os.name == "nt" else "clear")
         self.console.print(Padding(Markdown(f"## {text}", style="b white"), (2, 30, 1, 30), expand=False))
     
-    def show_message(self, message: str, color: str = Fore.WHITE) -> None:
+    def show_message(self, message: str, color: str = "white") -> None:
         """Display a message to the user in a specified color and wait for them to press F.
 
         Args:
