@@ -147,11 +147,10 @@ class FeedManager:
         Returns:
             int: The total duration in seconds.
 
-        If the duration format is invalid, it prints an error message and returns 0.
+        If the duration format is invalid, it returns 0.
         """
         match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?|P(\d+)D?", duration)
         if not match:
-            print(f"Invalid duration format: {duration}")
             return 0
         days = int(match.group(4)) if match.group(4) else 0
         hours = int(match.group(1)) if match.group(1) else 0

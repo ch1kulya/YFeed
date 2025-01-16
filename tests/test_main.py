@@ -55,7 +55,7 @@ def test_main_invalid_choice(mock_interface, mock_shutil_which):
     mock_shutil_which.side_effect = ['/usr/bin/ffmpeg', '/usr/bin/mpv']
     mock_interface.main_menu.side_effect = ['x', 'q']
     main()
-    mock_interface.show_message.assert_called_with("Invalid choice!", Fore.RED)
+    mock_interface.show_message.assert_called_with("Invalid choice!", "red")
     assert mock_interface.show_message.call_count == 1
 
 def test_main_full_flow(mock_interface, mock_shutil_which):
