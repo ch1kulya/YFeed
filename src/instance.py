@@ -1,9 +1,7 @@
 import sys
 import os
 from utils.player import MediaPlayer
-from colorama import init
 
-init(autoreset=True)
 os.system("cls" if os.name == "nt" else "clear")
 
 def watch_video(video_link):

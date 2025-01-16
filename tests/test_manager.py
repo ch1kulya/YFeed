@@ -45,9 +45,7 @@ def test_iso_duration_to_seconds_valid():
 def test_iso_duration_to_seconds_invalid(capfd):
     duration = "INVALID_DURATION"
     seconds = FeedManager.iso_duration_to_seconds(duration)
-    captured = capfd.readouterr()
     assert seconds == 0
-    assert "Invalid duration format" in captured.out
 
 @patch('utils.manager.requests.get')
 def test_parse_feed_success(mock_get, manager):

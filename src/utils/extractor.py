@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from utils.settings import NAMES_FILE
@@ -147,7 +148,7 @@ class Extractor:
             cached_names.update(new_names)
 
         except HttpError as e:
-            print(f"YouTube API error: {str(e)}")
+            raise ValueError(f"YouTube API error: {str(e)}")
 
         for cid in remaining_ids:
             cached_names.setdefault(cid, "Unknown")
@@ -155,3 +156,38 @@ class Extractor:
 
         self.save_cache(self.channel_name_cache, NAMES_FILE)
         return cached_names
+    
+    def get_channel_info(self, channel_id: str) -> dict:
+        """Retrieve detailed information about a YouTube channel by its ID.
+
+        Args:
+            channel_id (str): The ID of the YouTube channel.
+
+        Returns:
+            dict: A dictionary containing the channel's title, description,
+                  subscriber count, total video count, and URL. Returns None if an error occurs or data isn't found.
+        """
+        try:
+            response = self.youtube.channels().list(
+                part="snippet,statistics",
+                id=channel_id
+            ).execute()
+
+            if not response.get("items"):
+                return None
+
+            item = response["items"][0]
+            snippet = item["snippet"]
+            statistics = item["statistics"]
+            
+            channel_info = {
+                "title": snippet.get("title", "Unknown"),
+                "description": re.sub(r'\s+', ' ', snippet.get("description", "No description")).strip(),
+                "subscribers": statistics.get("subscriberCount", "Unknown"),
+                "total_videos": statistics.get("videoCount", "Unknown"),
+                "url": f"https://www.youtube.com/channel/{channel_id}"
+            }
+            return channel_info
+
+        except HttpError as e:
+            raise ValueError(f"YouTube API error: {str(e)}")
