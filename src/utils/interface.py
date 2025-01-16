@@ -48,7 +48,6 @@ class Interface:
         """
         self.console = Console()
         self.manager = manager
-        self.terminal_width = os.get_terminal_size().columns
         self.channel_ids = self.manager.channels
         self.channel_map = {}
         if  self.channel_ids:
@@ -357,13 +356,12 @@ class Interface:
                 table.add_row(*row_data)
             self.console.print(Align.center(table, vertical="middle"))
             choice = Prompt.ask("\n" + " " * 9 + "Select channel [underline]index[/underline] to remove[red]")
+            self.draw_heading("Remove Channel")
             if choice.isdigit() and 1 <= int(choice) <= len(self.manager.channels):
                 self.manager.channels.pop(int(choice) - 1)
                 self.manager.save_channels()
-                self.draw_heading("Remove Channel")
                 self.show_message("Channel removed!", "green")
             elif choice:
-                self.draw_heading("Remove Channel")
                 self.show_message("Invalid input.", "red")
         else:
             self.draw_heading("Remove Channel")
@@ -374,13 +372,12 @@ class Interface:
         self.draw_heading("Set Day Filter")
         answer = Prompt.ask("\n" + " " * 9 + f"Enter the [underline]number[/underline] of days [cyan](currently {self.manager.config['days_filter']} days)[/cyan]")
         days = ''.join([char for char in answer if char.isdigit()])
+        self.draw_heading("Set Day Filter")
         if days.isdigit() and int(days) > 0:
             self.manager.config["days_filter"] = int(days)
             self.manager.save_config()
-            self.draw_heading("Set Day Filter")
             self.show_message("Settings updated!", "green")
         elif days.strip():
-            self.draw_heading("Set Day Filter")
             self.show_message("Invalid input", "red")
             
     def length_filter(self) -> None:
@@ -388,13 +385,12 @@ class Interface:
         self.draw_heading("Set Length Filter")
         answer = Prompt.ask("\n" + " " * 9 + f"Enter the [underline]number[/underline] of minutes [cyan](currently {self.manager.config['min_video_length']} minutes)[/cyan]")
         new_length = ''.join([char for char in answer if char.isdigit()])
+        self.draw_heading("Set Length Filter")
         if new_length.isdigit() and int(new_length) > 0:
             self.manager.config["min_video_length"] = int(new_length)
             self.manager.save_config()
-            self.draw_heading("Set Length Filter")
             self.show_message("Settings updated!", "green")
         elif new_length.strip():
-            self.draw_heading("Set Length Filter")
             self.show_message("Invalid input", "red")
 
     def manage_api(self) -> None:
@@ -416,11 +412,10 @@ class Interface:
                 self.draw_heading("Set YouTube API Key")
                 self.show_message("API Key updated!", "green")
             except HttpError as e:
+                self.draw_heading("Set YouTube API Key")
                 if e.resp.status == 401:
-                    self.draw_heading("Set YouTube API Key")
                     self.show_message(f"Invalid API Key. Error: {e}", "red")
                 else:
-                    self.draw_heading("Set YouTube API Key")
                     self.show_message(f"Error validating API Key: {e}", "red")
             except Exception as e:
                 self.draw_heading("Set YouTube API Key")
