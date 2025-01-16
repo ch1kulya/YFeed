@@ -262,7 +262,8 @@ class Interface:
                         'title': video["title"],
                         'id': video["id"],
                         'author': video.get("author", "Unknown Channel"),
-                        'watched_at': datetime.now().isoformat()
+                        'watched_at': datetime.now().isoformat(),
+                        'duration': duration
                     }
                     if video_details:
                         self.manager.watched.add(tuple(video_details.items()))
@@ -440,7 +441,7 @@ class Interface:
                 table.add_column("Channel", justify="center", style="b white")
                 table.add_column("Duration", justify="right", style="b white")
                 table.add_column("Published", justify="right", style="italic white")
-                for idx, video in enumerate(results[:15], start=1):
+                for idx, video in enumerate(results[:15]):
                     title = self.format_title(video["title"])
                     channel_name = video.get("author", "Unknown Channel")
                     duration = f"{round(video['duration'] / 60)} min"
@@ -456,7 +457,8 @@ class Interface:
                         'title': video["title"],
                         'id': video["id"],
                         'author': video.get("author", "Unknown Channel"),
-                        'watched_at': datetime.now().isoformat()
+                        'watched_at': datetime.now().isoformat(),
+                        'duration': duration
                     }
                     if video_details:
                         self.manager.watched.add(tuple(video_details.items()))
@@ -470,49 +472,29 @@ class Interface:
         """Displays browsing history"""
         self.draw_heading("Watch History")
         watched_videos = [dict(item) for item in self.manager.watched]
+        watched_videos = sorted(watched_videos, key=lambda x: x['watched_at'], reverse=True)
         if not watched_videos:
             self.show_message("No videos watched yet.", "yellow")
             return
-
-        index_width, channel_width, time_width = 1, 25, 15
-        remaining_width = self.terminal_width - (index_width + time_width + channel_width)
-        title_width = int(remaining_width * 0.85)
-
-        separator = (
-            "═" * (index_width + 1) + "╪" + "═" * (title_width + 2) + "╪" + "═" * (channel_width + 2) + "╪" + "═" * (time_width)
-        )
-        header = (
-            f"{Fore.CYAN}{'#'.ljust(index_width)} {Fore.WHITE}│{Fore.CYAN} "
-            f"{'Title'.ljust(title_width)} {Fore.WHITE}│{Fore.CYAN} "
-            f"{'Channel'.ljust(channel_width)} {Fore.WHITE}│{Fore.CYAN} "
-            f"{'Watched'.ljust(time_width)}{Style.RESET_ALL}"
-        )
-
-        print(header)
-        print(separator)
-        
-        if not watched_videos:
-            self.show_message("No videos watched yet.", "yellow")
-            return
-            
-        for idx, video in enumerate(watched_videos[:8], start=1):
+        table = Table(box=box.ROUNDED, header_style="bold magenta")
+        table.add_column("[white]#", justify="center")
+        table.add_column("Title", style="white")
+        table.add_column("Channel", justify="center", style="b white")
+        table.add_column("Duration", justify="right", style="b white")
+        table.add_column("Watched", justify="right", style="white")     
+        for idx, video in enumerate(watched_videos[:15]):
             title = self.format_title(video["title"])
             channel_name = video.get("author", "Unknown Channel")
-            if len(channel_name) > channel_width - 3:
-                channel_name = channel_name[:channel_width - 3] + "..."
             watched_at = video.get('watched_at')
             time_ago = ""
             if watched_at:
                 watched_at = datetime.fromisoformat(watched_at)
                 delta = datetime.now() - watched_at
                 time_ago = self.format_time_ago(delta)
-            print(
-                f"{str(idx).rjust(index_width)} │ "
-                f"{title.ljust(title_width)} {Fore.WHITE}│ "
-                f"{channel_name.ljust(channel_width)} {Fore.WHITE}│ "
-                f"{time_ago.ljust(time_width)}{Style.RESET_ALL}"
-            )
-        choice = self.input_prompt(f"\n{Fore.WHITE}Select video {Fore.YELLOW}number{Fore.WHITE} to rewatch or press {Fore.YELLOW}Enter{Fore.WHITE} to return")
+            duration = video.get('duration')
+            table.add_row(str(idx + 1), title, channel_name, duration, time_ago)
+        self.console.print(Align.center(table, vertical="middle"))
+        choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline] to rewatch")
         if choice.isdigit() and 1 <= int(choice) <= len(watched_videos):
             video = watched_videos[int(choice) - 1]
             self.manager.open_video_instance(f"https://www.youtube.com/watch?v={video['id']}")
