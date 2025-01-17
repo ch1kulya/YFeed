@@ -219,12 +219,13 @@ class Interface:
                 for i, channel_id in enumerate(self.manager.channels):
                     feed = parsed_feeds[i]
                     videos.extend(self.manager.fetch_videos(channel_id, feed))
+            if not videos:
+                self.draw_heading("Video Fetcher")
+                self.show_message("No videos found!", "red")
+                return
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
             videos = [video for video in videos if video["published"] > cutoff_date]
-            if not videos:
-                self.show_message("No videos found!", "red")
-                return
             self.manager._log(f"[b green]Fetched successfully.")
             sleep(0.3)
             while True:
