@@ -221,7 +221,7 @@ class Interface:
                     videos.extend(self.manager.fetch_videos(channel_id, feed))
             if not videos:
                 self.draw_heading("Video Fetcher")
-                self.show_message("No videos found!", "red")
+                self.show_message("No videos found!\nCheck your subscriptions and internet connection.", "red")
                 return
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
