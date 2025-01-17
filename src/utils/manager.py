@@ -216,8 +216,8 @@ class FeedManager:
         """
         try:
             video_cache = self.channel_extractor.load_cache(CACHE_FILE)
-            if not feed.entries:
-                self._log("No entries found in the feed.")
+            if feed is None or not hasattr(feed, 'entries') or not feed.entries:
+                self._log("Feed is None or has no entries. Check your internet connection.")
                 return []
             video_ids_to_fetch = []
             cached_videos = []
