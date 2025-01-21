@@ -98,7 +98,7 @@ class Interface:
             str: Cleared title.
         """
         cutoff_index = len(title)
-        for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-", "and", "&", "и"]:
+        for char in ["|", "[", "(", ".", "@", ": ", "•", "+", "?", "/", ",", "-", " and ", "&", " и "]:
             index, addition = title.find(char), ""
             if 16 <= index < cutoff_index:
                 cutoff_index = index
