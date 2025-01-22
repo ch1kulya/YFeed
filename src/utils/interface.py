@@ -226,6 +226,10 @@ class Interface:
             videos = sorted(videos, key=lambda x: x["published"], reverse=True)
             cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
             videos = [video for video in videos if video["published"] > cutoff_date]
+            if not videos:
+                self.draw_heading("Video Fetcher")
+                self.show_message("No videos found!\nCheck your filters and internet connection.", "red")
+                return
             self.manager._log(f"[b green]Fetched successfully.")
             sleep(0.3)
             while True:
@@ -254,9 +258,31 @@ class Interface:
                         color_time = "magenta"
                     table.add_row(f"[{color}]{str(idx + 1)}[/{color}]", f"[{color}]{title}[/{color}]", f"[{color}]{channel_name}[/{color}]", f"[{color}]{duration}[/{color}]", f"[{color_time}]{time_ago}[/{color_time}]")
                 self.console.print(Align.center(table, vertical="middle"))
-                choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline] to watch")
+                choice = Prompt.ask("\n" + " " * 9 + "Select video [underline]index[/underline] to watch or [underline]0[/underline] to refresh")
                 if not choice.strip():
                     break
+                if int(choice) == 0:
+                    self.draw_heading("Video Fetcher")
+                    self.manager._log(f"Refreshing started.")
+                    parsed_feeds = self.manager.parse_feeds(self.manager.channels)
+                    videos.clear()
+                    with self.console.status(" " * 9 + "[b green]Fetching videos..."):
+                        for i, channel_id in enumerate(self.manager.channels):
+                            feed = parsed_feeds[i]
+                            videos.extend(self.manager.fetch_videos(channel_id, feed))
+                    if not videos:
+                        self.draw_heading("Video Fetcher")
+                        self.show_message("No videos found!\nCheck your subscriptions and internet connection.", "red")
+                        return
+                    videos.sort(key=lambda x: x["published"], reverse=True)
+                    cutoff_date = datetime.now(videos[0]["published"].tzinfo) - timedelta(days=self.manager.config["days_filter"])
+                    videos[:] = [v for v in videos if v["published"] > cutoff_date]
+                    if not videos:
+                        self.draw_heading("Video Fetcher")
+                        self.show_message("No videos found!\nCheck your filters and internet connection.", "red")
+                        return
+                    self.manager._log(f"[b green]Refreshed successfully.")
+                    continue
                 if choice.isdigit() and 1 <= int(choice) <= len(videos):
                     video = videos[int(choice) - 1]
                     video_details = {
