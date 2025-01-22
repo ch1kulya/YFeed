@@ -196,7 +196,7 @@ class FeedManager:
             list: A list of parsed feed data for each channel ID.
         """
         with self.console.status(" " * 9 + "[b green]Parsing channels..."):
-            with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=32) as executor:
                 results = list(executor.map(self.parse_feed, channel_ids))
             self._log(f"[b green]Parsed successfully.")
             return results
