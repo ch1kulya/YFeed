@@ -12,7 +12,7 @@ is a cli python application that fetches recent video data using YouTube Data AP
 ### Installation
 
 > [!WARNING]
-> Make sure you have `Python 3.12` or newer, `FFmpeg` and `mpv` installed. If you are using Windows, `Windows Terminal` is also recommended. If you are using Linux you should have `venv` module. If YouTube is not available in your country, you may need a Proxy/VPN to use the application.
+> Make sure you have `Python 3.12` or newer, `FFmpeg` and `mpv` installed. If you are using Windows, `Windows Terminal` is also recommended. If you are using Linux you should have `venv` module. If YouTube is not available in your country then this application will not work either.
 
 > [!TIP]
 > To simplify installation and startup you can use `run` scripts for automation, choose them depending on your system.
@@ -33,14 +33,5 @@ python src/main.py
 2. Create a new project or select an existing one.
 3. Enable the [**YouTube Data API v3**](https://console.cloud.google.com/apis/library/youtube.googleapis.com) for your project.
 4. Generate an **API Key** from the [**Credentials**](https://console.cloud.google.com/apis/credentials) section.
-
-### Data Structure
-| **File**             | **Stores**                       |
-|----------------------|----------------------------------|
-| `settings.json`      | User-configurable settings       |
-| `names.json`         | Channel names                    |
-| `channels.yfe`       | Subscribed channels              |
-| `watched.json`       | Watched videos                   |
-| `cache.json`         | Cached data                      |
 
 #### Contributing is encouraged 🤗
